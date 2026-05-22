@@ -96,6 +96,18 @@ export default function App() {
   const [isAddingExhibitor, setIsAddingExhibitor] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  // Securely request and route admin console access and tab redirections
+  const openAdminConsoleOrLogin = (defaultTab?: 'stands' | 'visitors' | 'messages' | 'exhibitors') => {
+    if (defaultTab) {
+      setAdminTab(defaultTab);
+    }
+    if (isAdminAuthenticated) {
+      setIsAdminPanelOpen(true);
+    } else {
+      setIsAdminLoginModalOpen(true);
+    }
+  };
+
   // Track window scroll for beautiful glowing glassy header effects
   useEffect(() => {
     const handleScroll = () => {
@@ -860,10 +872,10 @@ export default function App() {
             <div className="mt-4 md:mt-0">
               <button
                 id="organizer-console-panel-open"
-                onClick={() => setIsAdminPanelOpen(true)}
-                className="px-4 py-2 border-2 border-gold/40 hover:border-gold/90 text-navy font-bold text-xs uppercase tracking-wider rounded transition-colors"
+                onClick={() => openAdminConsoleOrLogin('exhibitors')}
+                className="px-4 py-2 border-2 border-gold/40 hover:border-gold/90 text-navy font-bold text-xs uppercase tracking-wider rounded transition-colors flex items-center justify-center gap-2"
               >
-                + Ajouter Ma Société (Espace Organisateur)
+                {isAdminAuthenticated ? '⚙️ Ajouter Ma Société' : '🔒 Connexion Organisateur'} (Espace Organisateur)
               </button>
             </div>
           </div>
@@ -993,8 +1005,8 @@ export default function App() {
 
               <div className="pt-4 border-t border-gray-100">
                 <button
-                  onClick={() => setIsAdminPanelOpen(true)}
-                  className="text-xs font-bold text-gold hover:text-gold-light flex items-center gap-2 underline"
+                  onClick={() => openAdminConsoleOrLogin('messages')}
+                  className="text-xs font-bold text-gold hover:text-gold-light flex items-center gap-2 underline text-left"
                 >
                   🔒 Accéder à l'espace de messagerie de l'exposition (Admin)
                 </button>
@@ -1314,7 +1326,7 @@ export default function App() {
 
       {/* ===== OVERLAY SIDEBAR SLIDE PANEL — INTERACTIVE ORGANIZER BACKOFFICE ===== */}
       <AnimatePresence>
-        {isAdminPanelOpen && (
+        {isAdminPanelOpen && isAdminAuthenticated && (
           <div className="fixed inset-0 z-[3000] flex justify-end" id="admin-backoffice-overlay-container">
             {/* Dark backdrop */}
             <motion.div 
