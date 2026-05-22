@@ -360,12 +360,12 @@ export default function App() {
           </li>
           <li>
             <a href="#about" className="text-white/80 hover:text-gold text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-gold after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
-              Bénéfices
+              Pourquoi Visiter
             </a>
           </li>
           <li>
             <a href="#secteurs" className="text-white/80 hover:text-gold text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-gold after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
-              Secteurs d'Expertise
+              Secteurs
             </a>
           </li>
           <li>
@@ -451,14 +451,14 @@ export default function App() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block text-white/95 text-sm font-bold uppercase tracking-wider border-b border-white/5 pb-2"
               >
-                Bénéfices
+                Pourquoi Visiter
               </a>
               <a 
                 href="#secteurs" 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block text-white/95 text-sm font-bold uppercase tracking-wider border-b border-white/5 pb-2"
               >
-                Secteurs d'Expertise
+                Secteurs
               </a>
               <a 
                 href="#exposants" 
@@ -662,7 +662,7 @@ export default function App() {
       <section className="py-24 bg-light/35" id="about">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">BÉNÉFICES CLÉS</span>
+            <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">POURQUOI VISITER</span>
             <h2 className="font-serif text-navy text-3xl sm:text-4xl md:text-5xl font-black">
               Pourquoi Rejoindre l'Expo en <span className="text-gold">2026</span> ?
             </h2>
