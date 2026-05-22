@@ -32,6 +32,7 @@ import { motion, AnimatePresence } from 'motion/react';
 // Imports of modals & types
 import StandBookingModal from './components/StandBookingModal';
 import VisitorTicketModal from './components/VisitorTicketModal';
+import Logo from './components/Logo';
 import type { Exhibitor, StandReservation, VisitorTicket, ContactMessage } from './types';
 
 export default function App() {
@@ -335,18 +336,7 @@ export default function App() {
         }`}
       >
         <div id="nav-brand-area" className="flex items-center gap-4">
-          <div className="flex flex-col select-none">
-            <span className="text-[10px] text-gold tracking-[0.3em] font-extrabold uppercase font-mono font-sans leading-none">
-              AFRICA POOL &amp; SPA
-            </span>
-            <div className="font-serif text-white font-black text-2xl leading-tight flex items-center gap-1.5 pt-0.5">
-              <span>EXPO</span> 
-              <span className="text-gold font-sans font-extrabold">2026</span>
-            </div>
-            <span className="text-[8px] text-white/50 uppercase tracking-widest leading-none">
-              OFEC Casablanca, Maroc
-            </span>
-          </div>
+          <Logo variant="horizontal" />
         </div>
 
         {/* Desktop Links */}
@@ -1121,9 +1111,7 @@ export default function App() {
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 pb-12 border-b border-white/5">
             <div className="space-y-4">
-              <div className="font-serif text-white font-extrabold text-xl leading-none">
-                AFRICA POOL &amp; SPA EXPO
-              </div>
+              <Logo variant="horizontal" className="scale-90 origin-left" />
               <p className="text-xs text-gray-400 leading-relaxed font-sans">
                 La référence absolue en Afrique pour la piscine et le spa. Un événement B2B incontournable conçu pour stimuler le tourisme haut de gamme.
               </p>
