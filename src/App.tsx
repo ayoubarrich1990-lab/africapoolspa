@@ -46,6 +46,31 @@ export default function App() {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   
+  // Admin Authentication States
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && sessionStorage.getItem('isAdminAuthenticated') === 'true';
+  });
+  const [isAdminLoginModalOpen, setIsAdminLoginModalOpen] = useState(false);
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminLoginError, setAdminLoginError] = useState('');
+
+  // Handle Admin Auth
+  const handleAdminLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminLoginError('');
+    if (adminUsername.trim().toLowerCase() === 'admin' && adminPassword === 'casa2026') {
+      setIsAdminAuthenticated(true);
+      sessionStorage.setItem('isAdminAuthenticated', 'true');
+      setIsAdminLoginModalOpen(false);
+      setIsAdminPanelOpen(true);
+      setAdminUsername('');
+      setAdminPassword('');
+    } else {
+      setAdminLoginError('Identifiant ou mot de passe incorrect. Astuce : utilisez admin / casa2026');
+    }
+  };
+  
   // Navigation hamburger for small devices
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -343,15 +368,17 @@ export default function App() {
           </li>
           
           {/* Quick link button to slide admin */}
-          <li>
-            <button 
-              id="admin-console-trigger-nav"
-              onClick={() => setIsAdminPanelOpen(true)}
-              className="px-3 py-1.5 rounded bg-white/10 text-gold hover:bg-gold hover:text-navy text-[10px] font-extrabold uppercase tracking-widest border border-gold/45 transition-all flex items-center gap-1.5"
-            >
-              <Sliders className="h-3.5 w-3.5" /> ⚙️ Admin Console
-            </button>
-          </li>
+          {isAdminAuthenticated && (
+            <li>
+              <button 
+                id="admin-console-trigger-nav"
+                onClick={() => setIsAdminPanelOpen(true)}
+                className="px-3 py-1.5 rounded bg-white/10 text-gold hover:bg-gold hover:text-navy text-[10px] font-extrabold uppercase tracking-widest border border-gold/45 transition-all flex items-center gap-1.5"
+              >
+                <Sliders className="h-3.5 w-3.5" /> ⚙️ Admin Console
+              </button>
+            </li>
+          )}
 
           <li>
             <button 
@@ -366,13 +393,15 @@ export default function App() {
 
         {/* Mobile menu trigger */}
         <div className="flex items-center gap-3 lg:hidden" id="nav-mobile-trigger-area">
-          <button 
-            onClick={() => setIsAdminPanelOpen(!isAdminPanelOpen)}
-            className="p-1.5 text-gold border border-gold/30 rounded bg-navy-light/60"
-            title="Console Admin"
-          >
-            <Sliders className="h-4 w-4" />
-          </button>
+          {isAdminAuthenticated && (
+            <button 
+              onClick={() => setIsAdminPanelOpen(!isAdminPanelOpen)}
+              className="p-1.5 text-gold border border-gold/30 rounded bg-navy-light/60"
+              title="Console Admin"
+            >
+              <Sliders className="h-4 w-4" />
+            </button>
+          )}
           
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -455,15 +484,17 @@ export default function App() {
                 </button>
               </div>
 
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsAdminPanelOpen(true);
-                }}
-                className="w-full py-2.5 bg-navy-light text-gold font-bold text-xs uppercase tracking-widest rounded border border-gold/30 text-center flex items-center justify-center gap-2"
-              >
-                <Sliders className="h-3.5 w-3.5" /> Ouvrir Console Administrateur
-              </button>
+              {isAdminAuthenticated && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsAdminPanelOpen(true);
+                  }}
+                  className="w-full py-2.5 bg-navy-light text-gold font-bold text-xs uppercase tracking-widest rounded border border-gold/30 text-center flex items-center justify-center gap-2"
+                >
+                  <Sliders className="h-3.5 w-3.5" /> Ouvrir Console Administrateur
+                </button>
+              )}
             </div>
           </motion.div>
         )}
@@ -556,21 +587,32 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-light/5 p-3.5 rounded border border-white/5 space-y-1.5 text-xs text-gray-400">
-                <span className="font-bold font-sans text-white text-[10px] uppercase block tracking-wider">Note Organisateur :</span>
-                <p className="leading-relaxed">
-                  Utilisez la Console Admin (en haut à droite) pour simuler la validation commerciale, attribuer des numéros physiques de stands ou inspecter les participants.
-                </p>
-              </div>
+              {isAdminAuthenticated ? (
+                <>
+                  <div className="bg-light/5 p-3.5 rounded border border-white/5 space-y-1.5 text-xs text-gray-400 font-sans">
+                    <span className="font-bold font-sans text-white text-[10px] uppercase block tracking-wider">Note Organisateur :</span>
+                    <p className="leading-relaxed">
+                      Utilisez la Console Admin (en haut à droite) pour simuler la validation commerciale, attribuer des numéros physiques de stands ou inspecter les participants.
+                    </p>
+                  </div>
 
-              <div className="pt-2">
-                <button
-                  onClick={() => setIsAdminPanelOpen(true)}
-                  className="w-full py-2.5 bg-navy border border-gold/30 text-gold text-xs font-bold uppercase tracking-wider rounded hover:bg-gold hover:text-navy hover:border-gold transition-all text-center block"
-                >
-                  Ouvrir le Backoffice de Gestion →
-                </button>
-              </div>
+                  <div className="pt-2 font-sans">
+                    <button
+                      onClick={() => setIsAdminPanelOpen(true)}
+                      className="w-full py-2.5 bg-navy border border-gold/30 text-gold text-xs font-bold uppercase tracking-wider rounded hover:bg-gold hover:text-navy hover:border-gold transition-all text-center block font-sans"
+                    >
+                      Ouvrir le Backoffice de Gestion →
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-light/5 p-3.5 rounded border border-white/5 space-y-1.5 text-xs text-gray-400 font-sans">
+                  <span className="font-bold font-sans text-gold text-[10px] uppercase block tracking-wider">Information de Réservation :</span>
+                  <p className="leading-relaxed">
+                    Les attributions d'emplacements et de stands physiques dans le hall du salon de l'OFEC sont mises à jour régulièrement après validation par le comité directeur.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1081,32 +1123,43 @@ export default function App() {
             </div>
 
             <div className="space-y-3">
-              <h5 className="text-[10px] uppercase tracking-wider text-gold font-bold">Raccourcis Organisateur</h5>
+              <h5 className="text-[10px] uppercase tracking-wider text-gold font-bold">Espace Organisateur</h5>
               <div className="flex flex-col gap-2 text-xs">
-                <button 
-                  onClick={() => setIsAdminPanelOpen(true)}
-                  className="text-left text-gray-300 hover:text-gold transition-colors block"
-                >
-                  🔑 Console Administrateur (Privé)
-                </button>
-                <button 
-                  onClick={() => {
-                    setIsAdminPanelOpen(true);
-                    setAdminTab('stands');
-                  }}
-                  className="text-left text-gray-300 hover:text-gold transition-colors block"
-                >
-                  📋 Validation de dossiers stands
-                </button>
-                <button
-                  onClick={() => {
-                    setIsAdminPanelOpen(true);
-                    setAdminTab('visitors');
-                  }}
-                  className="text-left text-gray-300 hover:text-gold transition-colors block"
-                >
-                  🎟️ Liste des badges professionnels
-                </button>
+                {isAdminAuthenticated ? (
+                  <>
+                    <button 
+                      onClick={() => setIsAdminPanelOpen(true)}
+                      className="text-left text-gray-300 hover:text-gold transition-colors block"
+                    >
+                      🔑 Console Administrateur
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setIsAdminPanelOpen(true);
+                        setAdminTab('stands');
+                      }}
+                      className="text-left text-gray-300 hover:text-gold transition-colors block"
+                    >
+                      📋 Validation de dossiers stands
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsAdminPanelOpen(true);
+                        setAdminTab('visitors');
+                      }}
+                      className="text-left text-gray-300 hover:text-gold transition-colors block"
+                    >
+                      🎟️ Liste des badges professionnels
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={() => setIsAdminLoginModalOpen(true)}
+                    className="text-left text-gray-400 hover:text-gold transition-colors flex items-center gap-1.5"
+                  >
+                    <Lock className="h-3 w-3 text-gold" /> Connexion Administrateur
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1162,6 +1215,112 @@ export default function App() {
       />
 
 
+      {/* ===== SECURE ORGANIZER SIGNIN DIALOG ===== */}
+      <AnimatePresence>
+        {isAdminLoginModalOpen && (
+          <div className="fixed inset-0 z-[4000] flex items-center justify-center p-4 font-sans" id="admin-login-modal-wrapper">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setIsAdminLoginModalOpen(false);
+                setAdminLoginError('');
+              }}
+              className="absolute inset-0 bg-[#050f22]/90 backdrop-blur-md"
+            />
+
+            {/* Modal Body */}
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md bg-[#0a1f44] border-2 border-gold/40 rounded-xl p-8 shadow-2xl text-white z-10 font-sans"
+              id="admin-login-modal-content"
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => {
+                  setIsAdminLoginModalOpen(false);
+                  setAdminLoginError('');
+                }}
+                className="absolute top-4 right-4 text-white/50 hover:text-white p-1 hover:bg-white/5 rounded-full transition-colors"
+                title="Clore la fenêtre de connexion"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Padlock Accent banner */}
+              <div className="flex flex-col items-center text-center space-y-3 mb-6">
+                <div className="w-14 h-14 bg-gold/10 border border-gold/40 text-gold flex items-center justify-center rounded-full shadow-inner animate-[pulse_3s_infinite]">
+                  <Lock className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="font-serif text-xl font-bold tracking-tight text-white">Espace Administrateur</h3>
+                  <p className="text-xs text-gray-400 mt-1">Accès réservé aux organisateurs du salon de Casablanca</p>
+                </div>
+              </div>
+
+              {/* Login Form */}
+              <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
+                {adminLoginError && (
+                  <div className="p-3 bg-rose-500/15 border border-rose-500/30 rounded text-rose-300 text-xs text-left leading-relaxed">
+                    ⚠️ {adminLoginError}
+                  </div>
+                )}
+
+                <div className="space-y-1.5 text-left text-xs">
+                  <label className="block text-gray-300 font-bold uppercase tracking-wider">Identifiant Administrateur</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gold" />
+                    <input 
+                      type="text"
+                      required
+                      autoFocus
+                      placeholder="Identifiant (ex: admin)"
+                      className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
+                      value={adminUsername}
+                      onChange={(e) => setAdminUsername(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 text-left text-xs">
+                  <label className="block text-gray-300 font-bold uppercase tracking-wider">Mot de passe / Passcode</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gold" />
+                    <input 
+                      type="password"
+                      required
+                      placeholder="Mot de passe (ex: casa2026)"
+                      className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-[#050f22] p-2.5 border border-white/5 rounded text-[10px] text-gray-400 text-left font-mono leading-relaxed space-y-1">
+                  <span className="text-gold font-bold uppercase tracking-wider block">ℹ️ Instructions de Démonstration :</span>
+                  <p>Utilisez les identifiants provisoires suivants :</p>
+                  <p>• Identifiant : <strong className="text-white select-all">admin</strong></p>
+                  <p>• Mot de passe : <strong className="text-white select-all">casa2026</strong></p>
+                </div>
+
+                <button 
+                  type="submit"
+                  className="w-full py-3 bg-gold text-navy font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold-light transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-2"
+                >
+                  <ShieldCheck className="h-4 w-4" /> Se connecter au Backoffice
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+
       {/* ===== OVERLAY SIDEBAR SLIDE PANEL — INTERACTIVE ORGANIZER BACKOFFICE ===== */}
       <AnimatePresence>
         {isAdminPanelOpen && (
@@ -1197,13 +1356,25 @@ export default function App() {
                   </div>
                 </div>
 
-                <button 
-                  onClick={() => setIsAdminPanelOpen(false)}
-                  className="p-1 text-white hover:text-gold transition-colors"
-                  title="Fermer la console"
-                >
-                  <X className="h-6 w-6" />
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      sessionStorage.removeItem('isAdminAuthenticated');
+                      setIsAdminAuthenticated(false);
+                      setIsAdminPanelOpen(false);
+                    }}
+                    className="px-2.5 py-1 bg-rose-600/20 text-rose-300 hover:bg-rose-600 hover:text-white border border-rose-500/20 rounded text-[10px] uppercase font-bold tracking-wider transition-all"
+                  >
+                    Se Déconnecter
+                  </button>
+                  <button 
+                    onClick={() => setIsAdminPanelOpen(false)}
+                    className="p-1 text-white hover:text-gold transition-colors"
+                    title="Fermer la console"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
               </div>
 
               {/* Control Area Tabs */}
