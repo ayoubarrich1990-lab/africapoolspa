@@ -91,19 +91,21 @@ export const Logo: React.FC<LogoProps> = ({
     return (
       <div className={`flex flex-col items-center text-center gap-3 ${className}`} id="logo-branding-vertical">
         <Symbol />
-        <div className="flex flex-col select-none font-sans">
-          <span className="text-[11px] text-gold tracking-[0.35em] font-extrabold uppercase leading-none">
-            AFRICA POOL &amp; SPA
-          </span>
-          <div className={`font-serif ${primaryColor} font-black text-3xl leading-tight flex items-center justify-center gap-2 pt-1`}>
-            <span>EXPO</span> 
-            <span className="text-gold font-sans font-extrabold">2026</span>
+        {imgFailed && (
+          <div className="flex flex-col select-none font-sans">
+            <span className="text-[11px] text-gold tracking-[0.35em] font-extrabold uppercase leading-none">
+              AFRICA POOL &amp; SPA
+            </span>
+            <div className={`font-serif ${primaryColor} font-black text-3xl leading-tight flex items-center justify-center gap-2 pt-1`}>
+              <span>EXPO</span> 
+              <span className="text-gold font-sans font-extrabold">2026</span>
+            </div>
+            <div className="h-[1px] w-12 bg-gold/50 my-2 mx-auto" />
+            <span className={`text-[9px] ${subtitleColor} uppercase tracking-[0.2em] font-medium leading-none`}>
+              OFEC Casablanca • Maroc
+            </span>
           </div>
-          <div className="h-[1px] w-12 bg-gold/50 my-2 mx-auto" />
-          <span className={`text-[9px] ${subtitleColor} uppercase tracking-[0.2em] font-medium leading-none`}>
-            OFEC Casablanca • Maroc
-          </span>
-        </div>
+        )}
       </div>
     );
   }
@@ -112,18 +114,20 @@ export const Logo: React.FC<LogoProps> = ({
   return (
     <div className={`flex items-center gap-3.5 select-none ${className}`} id="logo-branding-horizontal">
       <Symbol />
-      <div className="flex flex-col font-sans">
-        <span className="text-[10px] text-gold tracking-[0.28em] font-black uppercase leading-none font-mono">
-          AFRICA POOL &amp; SPA
-        </span>
-        <div className={`font-serif ${primaryColor} font-black text-xl lg:text-2xl leading-tight flex items-center gap-1.5 pt-0.5`}>
-          <span className="tracking-tight">EXPO</span> 
-          <span className="text-gold font-sans font-black">2026</span>
+      {imgFailed && (
+        <div className="flex flex-col font-sans">
+          <span className="text-[10px] text-gold tracking-[0.28em] font-black uppercase leading-none font-mono">
+            AFRICA POOL &amp; SPA
+          </span>
+          <div className={`font-serif ${primaryColor} font-black text-xl lg:text-2xl leading-tight flex items-center gap-1.5 pt-0.5`}>
+            <span className="tracking-tight">EXPO</span> 
+            <span className="text-gold font-sans font-black">2026</span>
+          </div>
+          <span className={`text-[8px] ${subtitleColor} uppercase tracking-widest leading-none pt-0.5`}>
+            OFEC Casablanca, Maroc
+          </span>
         </div>
-        <span className={`text-[8px] ${subtitleColor} uppercase tracking-widest leading-none pt-0.5`}>
-          OFEC Casablanca, Maroc
-        </span>
-      </div>
+      )}
     </div>
   );
 };
