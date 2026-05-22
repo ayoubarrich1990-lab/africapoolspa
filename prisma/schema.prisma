@@ -1,0 +1,62 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Exhibitor {
+  id            String  @id
+  name          String
+  highlightWord String? @map("highlight_word")
+  logoColor     String? @map("logo_color")
+
+  @@map("exhibitors")
+}
+
+model Reservation {
+  id               String  @id
+  companyName      String  @map("company_name")
+  contactName      String  @map("contact_name")
+  email            String
+  phone            String
+  sector           String
+  standSize        Int     @map("stand_size")
+  standType        String  @map("stand_type")
+  description      String?
+  status           String
+  createdAt        String  @map("created_at")
+  assignedLocation String? @map("assigned_location")
+
+  @@map("reservations")
+}
+
+model Ticket {
+  id             String @id
+  firstName      String @map("first_name")
+  lastName       String @map("last_name")
+  company        String
+  jobTitle       String @map("job_title")
+  email          String
+  phone          String
+  sectorInterest String @map("sector_interest")
+  createdAt      String @map("created_at")
+  ticketNumber   String @map("ticket_number")
+
+  @@map("tickets")
+}
+
+model Message {
+  id        String   @id
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  createdAt String   @map("created_at")
+  read      Boolean  @default(false)
+
+  @@map("messages")
+}

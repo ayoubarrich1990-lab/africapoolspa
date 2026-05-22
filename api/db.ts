@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { createPool } from '@vercel/postgres';
+import { PrismaClient } from '@prisma/client';
 import type { Exhibitor, StandReservation, VisitorTicket, ContactMessage } from '../src/types.js';
 
 // Identify environment
@@ -18,7 +18,7 @@ interface DatabaseSchema {
   messages: ContactMessage[];
 }
 
-// Default initial database for JSON fallback
+// Default initial database for JSON fallback and DB seeding
 const getInitialDb = (): DatabaseSchema => {
   return {
     exhibitors: [
@@ -116,11 +116,10 @@ const getInitialDb = (): DatabaseSchema => {
   };
 };
 
-// JSON Read/Write helpers
+// JSON Read/Write helpers for local developer environment fallback
 const readJsonDb = (): DatabaseSchema => {
   try {
     if (!fs.existsSync(JSON_DB_FILE)) {
-      // Seed from existing database fallback
       const sourcePath = path.join(process.cwd(), 'expo-database.json');
       if (fs.existsSync(sourcePath)) {
         const content = fs.readFileSync(sourcePath, 'utf-8');
@@ -147,198 +146,174 @@ const writeJsonDb = (db: DatabaseSchema) => {
   }
 };
 
-// Dynamic Postgres database client creation (prevents crashes if missing)
-let postgresEnabled = false;
-let pool: ReturnType<typeof createPool> | null = null;
+// Initiate Prisma database client singleton cleanly
+let prisma: PrismaClient | null = null;
+let usePrisma = false;
 
-if (process.env.POSTGRES_URL) {
+const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL;
+const isPlaceholder = !dbUrl || dbUrl.includes('xxx') || dbUrl.includes('placeholder');
+
+if (dbUrl && !isPlaceholder) {
   try {
-    pool = createPool({
-      connectionString: process.env.POSTGRES_URL,
+    prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: dbUrl,
+        },
+      },
     });
-    postgresEnabled = true;
-    console.log("🟢 Vercel Postgres connection configured.");
+    usePrisma = true;
+    console.log("🟢 Vercel Postgres connection configured with Prisma.");
   } catch (err) {
-    console.error("❌ Failed to initiate Vercel Postgres client pool:", err);
+    console.error("❌ Failed to initiate Prisma client:", err);
+    usePrisma = false;
   }
 } else {
-  console.log("ℹ️ POSTGRES_URL not provided. Running in dynamic offline JSON File Fallback mode.");
+  console.log("ℹ️ POSTGRES_PRISMA_URL placeholder or missing. Running in local JSON Database Fallback mode.");
+  usePrisma = false;
 }
 
-// Setup & Provision Postgres Tables
-export async function setupDatabase() {
-  if (!postgresEnabled || !pool) return false;
+// Seed the base PostgreSQL tables automatically if they are fully empty
+export async function setupDatabase(): Promise<boolean> {
+  if (!usePrisma || !prisma) return false;
   try {
-    const client = await pool.connect();
-    try {
-      console.log("🛠️ Connected to Vercel Postgres. Provisioning tables if needed...");
-      
-      // 1. Create Exhibitors table
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS exhibitors (
-          id VARCHAR(150) PRIMARY KEY,
-          name TEXT NOT NULL,
-          highlight_word TEXT,
-          logo_color TEXT
-        )
-      `);
+    console.log("🛠️ Checking and provisioning default data inside PostgreSQL database using Prisma...");
 
-      // 2. Create Reservations table
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS reservations (
-          id VARCHAR(150) PRIMARY KEY,
-          company_name TEXT NOT NULL,
-          contact_name TEXT NOT NULL,
-          email TEXT NOT NULL,
-          phone TEXT NOT NULL,
-          sector TEXT NOT NULL,
-          stand_size INTEGER NOT NULL,
-          stand_type TEXT NOT NULL,
-          description TEXT,
-          status TEXT NOT NULL,
-          created_at VARCHAR(100) NOT NULL,
-          assigned_location TEXT
-        )
-      `);
-
-      // 3. Create Visitor Tickets table
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS tickets (
-          id VARCHAR(150) PRIMARY KEY,
-          first_name TEXT NOT NULL,
-          last_name TEXT NOT NULL,
-          company TEXT NOT NULL,
-          job_title TEXT NOT NULL,
-          email TEXT NOT NULL,
-          phone TEXT NOT NULL,
-          sector_interest TEXT NOT NULL,
-          created_at VARCHAR(100) NOT NULL,
-          ticket_number TEXT NOT NULL
-        )
-      `);
-
-      // 4. Create Messages table
-      await client.query(`
-        CREATE TABLE IF NOT EXISTS messages (
-          id VARCHAR(150) PRIMARY KEY,
-          name TEXT NOT NULL,
-          email TEXT NOT NULL,
-          phone TEXT,
-          subject TEXT,
-          message TEXT NOT NULL,
-          created_at VARCHAR(100) NOT NULL,
-          read BOOLEAN DEFAULT FALSE
-        )
-      `);
-
-      // Seed exhibitors table if empty
-      const exhibitorCheck = await client.query('SELECT COUNT(*) FROM exhibitors');
-      if (parseInt(exhibitorCheck.rows[0].count, 10) === 0) {
-        console.log("🌱 Seeding initial exhibitors in the Postgres database...");
-        const initial = getInitialDb();
-        for (const ex of initial.exhibitors) {
-          await client.query(
-            'INSERT INTO exhibitors (id, name, highlight_word, logo_color) VALUES ($1, $2, $3, $4)',
-            [ex.id, ex.name, ex.highlightWord || null, ex.logoColor || null]
-          );
-        }
+    // 1. EXHIBITORS SEED
+    const exhibitorCount = await prisma.exhibitor.count();
+    if (exhibitorCount === 0) {
+      console.log("🌱 Database is empty for Exhibitors. Seeding default tables...");
+      const initial = getInitialDb();
+      for (const ex of initial.exhibitors) {
+        await prisma.exhibitor.create({
+          data: {
+            id: ex.id,
+            name: ex.name,
+            highlightWord: ex.highlightWord || null,
+            logoColor: ex.logoColor || null,
+          },
+        });
       }
-
-      // Seed reservations if empty
-      const reservationCheck = await client.query('SELECT COUNT(*) FROM reservations');
-      if (parseInt(reservationCheck.rows[0].count, 10) === 0) {
-        console.log("🌱 Seeding initial reservations in the Postgres database...");
-        const initial = getInitialDb();
-        for (const res of initial.reservations) {
-          await client.query(
-            `INSERT INTO reservations (
-              id, company_name, contact_name, email, phone, sector, 
-              stand_size, stand_type, description, status, created_at, assigned_location
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-            [
-              res.id, res.companyName, res.contactName, res.email, res.phone, res.sector,
-              res.standSize, res.standType, res.description || null, res.status, res.createdAt, res.assignedLocation || null
-            ]
-          );
-        }
-      }
-
-      // Seed tickets if empty
-      const ticketCheck = await client.query('SELECT COUNT(*) FROM tickets');
-      if (parseInt(ticketCheck.rows[0].count, 10) === 0) {
-        console.log("🌱 Seeding initial visitor tickets in the Postgres database...");
-        const initial = getInitialDb();
-        for (const tkt of initial.tickets) {
-          await client.query(
-            `INSERT INTO tickets (
-              id, first_name, last_name, company, job_title, email, phone, sector_interest, created_at, ticket_number
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-            [
-              tkt.id, tkt.firstName, tkt.lastName, tkt.company, tkt.jobTitle, tkt.email, tkt.phone, tkt.sectorInterest, tkt.createdAt, tkt.ticketNumber
-            ]
-          );
-        }
-      }
-
-      // Seed messages if empty
-      const msgCheck = await client.query('SELECT COUNT(*) FROM messages');
-      if (parseInt(msgCheck.rows[0].count, 10) === 0) {
-        console.log("🌱 Seeding initial messages in the Postgres database...");
-        const initial = getInitialDb();
-        for (const msg of initial.messages) {
-          await client.query(
-            `INSERT INTO messages (
-              id, name, email, phone, subject, message, created_at, read
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-            [
-              msg.id, msg.name, msg.email, msg.phone || null, msg.subject || null, msg.message, msg.createdAt, msg.read
-            ]
-          );
-        }
-      }
-
-      console.log("✨ database initialized and synced successfully.");
-      return true;
-    } finally {
-      client.release();
     }
+
+    // 2. RESERVATIONS SEED
+    const reservationCount = await prisma.reservation.count();
+    if (reservationCount === 0) {
+      console.log("🌱 Database is empty for Reservations. Seeding default tables...");
+      const initial = getInitialDb();
+      for (const res of initial.reservations) {
+        await prisma.reservation.create({
+          data: {
+            id: res.id,
+            companyName: res.companyName,
+            contactName: res.contactName,
+            email: res.email,
+            phone: res.phone,
+            sector: res.sector,
+            standSize: res.standSize,
+            standType: res.standType,
+            description: res.description || null,
+            status: res.status,
+            createdAt: res.createdAt,
+            assignedLocation: res.assignedLocation || null,
+          },
+        });
+      }
+    }
+
+    // 3. TICKETS SEED
+    const ticketCount = await prisma.ticket.count();
+    if (ticketCount === 0) {
+      console.log("🌱 Database is empty for Visitor Tickets. Seeding default tables...");
+      const initial = getInitialDb();
+      for (const tkt of initial.tickets) {
+        await prisma.ticket.create({
+          data: {
+            id: tkt.id,
+            firstName: tkt.firstName,
+            lastName: tkt.lastName,
+            company: tkt.company,
+            jobTitle: tkt.jobTitle,
+            email: tkt.email,
+            phone: tkt.phone,
+            sectorInterest: tkt.sectorInterest,
+            createdAt: tkt.createdAt,
+            ticketNumber: tkt.ticketNumber,
+          },
+        });
+      }
+    }
+
+    // 4. MESSAGES SEED
+    const messageCount = await prisma.message.count();
+    if (messageCount === 0) {
+      console.log("🌱 Database is empty for Messages. Seeding default tables...");
+      const initial = getInitialDb();
+      for (const msg of initial.messages) {
+        await prisma.message.create({
+          data: {
+            id: msg.id,
+            name: msg.name,
+            email: msg.email,
+            phone: msg.phone || null,
+            subject: msg.subject || null,
+            message: msg.message,
+            createdAt: msg.createdAt,
+            read: msg.read,
+          },
+        });
+      }
+    }
+
+    console.log("✨ database fully preloaded and synchronized using Prisma v5.");
+    return true;
   } catch (err) {
-    console.error("❌ Postgres dynamic database setup failed, defaulting to JSON mode.", err);
-    postgresEnabled = false;
+    console.error("❌ Prisma database synchronization failed:", err);
     return false;
   }
 }
 
-// ---------------- DATABASE ACTIONS ----------------
+// ---------------- DATABASE CRUD OPERATIONS ----------------
 
 // ===== 1. EXHIBITORS =====
 export async function getExhibitors(): Promise<Exhibitor[]> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      const res = await pool.query('SELECT * FROM exhibitors ORDER BY name ASC');
-      return res.rows.map(row => ({
-        id: row.id,
-        name: row.name,
-        highlightWord: row.highlight_word || undefined,
-        logoColor: row.logo_color || undefined
+      const list = await prisma.exhibitor.findMany({
+        orderBy: { name: 'asc' },
+      });
+      return list.map(item => ({
+        id: item.id,
+        name: item.name,
+        highlightWord: item.highlightWord || undefined,
+        logoColor: item.logoColor || undefined,
       }));
     } catch (err) {
-      console.error("Failed to query exhibitors from PostgreSQL. Falling back to JSON.", err);
+      console.error("Prisma lookup failed for exhibitors, falling back.", err);
     }
   }
   return readJsonDb().exhibitors;
 }
 
 export async function addExhibitor(exhibitor: Exhibitor): Promise<Exhibitor> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      await pool.query(
-        'INSERT INTO exhibitors (id, name, highlight_word, logo_color) VALUES ($1, $2, $3, $4)',
-        [exhibitor.id, exhibitor.name, exhibitor.highlightWord || null, exhibitor.logoColor || null]
-      );
-      return exhibitor;
+      const saved = await prisma.exhibitor.create({
+        data: {
+          id: exhibitor.id,
+          name: exhibitor.name,
+          highlightWord: exhibitor.highlightWord || null,
+          logoColor: exhibitor.logoColor || null,
+        },
+      });
+      return {
+        id: saved.id,
+        name: saved.name,
+        highlightWord: saved.highlightWord || undefined,
+        logoColor: saved.logoColor || undefined,
+      };
     } catch (err) {
-      console.error("Failed to save exhibitor to PostgreSQL. Saving to JSON.", err);
+      console.error("Prisma create failed for exhibitor, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -348,12 +323,14 @@ export async function addExhibitor(exhibitor: Exhibitor): Promise<Exhibitor> {
 }
 
 export async function deleteExhibitor(id: string): Promise<boolean> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      const res = await pool.query('DELETE FROM exhibitors WHERE id = $1', [id]);
-      return (res.rowCount ?? 0) > 0;
+      const deleted = await prisma.exhibitor.delete({
+        where: { id },
+      });
+      return !!deleted;
     } catch (err) {
-      console.error("Failed to delete exhibitor in PostgreSQL. Doing in JSON.", err);
+      console.error("Prisma delete failed for exhibitor, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -366,46 +343,67 @@ export async function deleteExhibitor(id: string): Promise<boolean> {
 
 // ===== 2. STAND RESERVATIONS =====
 export async function getReservations(): Promise<StandReservation[]> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      const res = await pool.query('SELECT * FROM reservations ORDER BY created_at DESC');
-      return res.rows.map(row => ({
-        id: row.id,
-        companyName: row.company_name,
-        contactName: row.contact_name,
-        email: row.email,
-        phone: row.phone,
-        sector: row.sector,
-        standSize: row.stand_size,
-        standType: row.stand_type,
-        description: row.description || undefined,
-        status: row.status,
-        createdAt: row.created_at,
-        assignedLocation: row.assigned_location || undefined
+      const list = await prisma.reservation.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+      return list.map(item => ({
+        id: item.id,
+        companyName: item.companyName,
+        contactName: item.contactName,
+        email: item.email,
+        phone: item.phone,
+        sector: item.sector,
+        standSize: item.standSize,
+        standType: item.standType as 'standard' | 'premium',
+        description: item.description || undefined,
+        status: item.status as 'pending' | 'approved' | 'rejected',
+        createdAt: item.createdAt,
+        assignedLocation: item.assignedLocation || undefined,
       }));
     } catch (err) {
-      console.error("Failed to query reservations from PostgreSQL. Falling back to JSON.", err);
+      console.error("Prisma query failed for reservations, falling back.", err);
     }
   }
   return readJsonDb().reservations;
 }
 
 export async function addReservation(reservation: StandReservation): Promise<StandReservation> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      await pool.query(
-        `INSERT INTO reservations (
-          id, company_name, contact_name, email, phone, sector, 
-          stand_size, stand_type, description, status, created_at, assigned_location
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-        [
-          reservation.id, reservation.companyName, reservation.contactName, reservation.email, reservation.phone, reservation.sector,
-          reservation.standSize, reservation.standType, reservation.description || null, reservation.status, reservation.createdAt, reservation.assignedLocation || null
-        ]
-      );
-      return reservation;
+      const saved = await prisma.reservation.create({
+        data: {
+          id: reservation.id,
+          companyName: reservation.companyName,
+          contactName: reservation.contactName,
+          email: reservation.email,
+          phone: reservation.phone,
+          sector: reservation.sector,
+          standSize: reservation.standSize,
+          standType: reservation.standType,
+          description: reservation.description || null,
+          status: reservation.status,
+          createdAt: reservation.createdAt,
+          assignedLocation: reservation.assignedLocation || null,
+        },
+      });
+      return {
+        id: saved.id,
+        companyName: saved.companyName,
+        contactName: saved.contactName,
+        email: saved.email,
+        phone: saved.phone,
+        sector: saved.sector,
+        standSize: saved.standSize,
+        standType: saved.standType as 'standard' | 'premium',
+        description: saved.description || undefined,
+        status: saved.status as 'pending' | 'approved' | 'rejected',
+        createdAt: saved.createdAt,
+        assignedLocation: saved.assignedLocation || undefined,
+      };
     } catch (err) {
-      console.error("Failed to save reservation to PostgreSQL. Saving to JSON.", err);
+      console.error("Prisma create failed for reservation, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -415,53 +413,42 @@ export async function addReservation(reservation: StandReservation): Promise<Sta
 }
 
 export async function updateReservation(id: string, updates: Partial<StandReservation>): Promise<StandReservation | null> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      const current = await pool.query('SELECT * FROM reservations WHERE id = $1', [id]);
-      if (current.rowCount === 0) return null;
-      
-      const row = current.rows[0];
-      const merged = {
-        company_name: updates.companyName !== undefined ? updates.companyName : row.company_name,
-        contact_name: updates.contactName !== undefined ? updates.contactName : row.contact_name,
-        email: updates.email !== undefined ? updates.email : row.email,
-        phone: updates.phone !== undefined ? updates.phone : row.phone,
-        sector: updates.sector !== undefined ? updates.sector : row.sector,
-        stand_size: updates.standSize !== undefined ? updates.standSize : row.stand_size,
-        stand_type: updates.standType !== undefined ? updates.standType : row.stand_type,
-        description: updates.description !== undefined ? updates.description : row.description,
-        status: updates.status !== undefined ? updates.status : row.status,
-        assigned_location: updates.assignedLocation !== undefined ? updates.assignedLocation : row.assigned_location
-      };
+      // Create updates object dynamically with only valid Prisma fields
+      const data: any = {};
+      if (updates.companyName !== undefined) data.companyName = updates.companyName;
+      if (updates.contactName !== undefined) data.contactName = updates.contactName;
+      if (updates.email !== undefined) data.email = updates.email;
+      if (updates.phone !== undefined) data.phone = updates.phone;
+      if (updates.sector !== undefined) data.sector = updates.sector;
+      if (updates.standSize !== undefined) data.standSize = Number(updates.standSize);
+      if (updates.standType !== undefined) data.standType = updates.standType;
+      if (updates.description !== undefined) data.description = updates.description || null;
+      if (updates.status !== undefined) data.status = updates.status;
+      if (updates.assignedLocation !== undefined) data.assignedLocation = updates.assignedLocation || null;
 
-      await pool.query(
-        `UPDATE reservations SET 
-          company_name = $1, contact_name = $2, email = $3, phone = $4, sector = $5,
-          stand_size = $6, stand_type = $7, description = $8, status = $9, assigned_location = $10
-         WHERE id = $11`,
-         [
-           merged.company_name, merged.contact_name, merged.email, merged.phone, merged.sector,
-           merged.stand_size, merged.stand_type, merged.description || null, merged.status, merged.assigned_location || null,
-           id
-         ]
-      );
+      const saved = await prisma.reservation.update({
+        where: { id },
+        data,
+      });
 
       return {
-        id,
-        companyName: merged.company_name,
-        contactName: merged.contact_name,
-        email: merged.email,
-        phone: merged.phone,
-        sector: merged.sector,
-        standSize: merged.stand_size,
-        standType: merged.stand_type,
-        description: merged.description || undefined,
-        status: merged.status,
-        createdAt: row.created_at,
-        assignedLocation: merged.assigned_location || undefined
+        id: saved.id,
+        companyName: saved.companyName,
+        contactName: saved.contactName,
+        email: saved.email,
+        phone: saved.phone,
+        sector: saved.sector,
+        standSize: saved.standSize,
+        standType: saved.standType as 'standard' | 'premium',
+        description: saved.description || undefined,
+        status: saved.status as 'pending' | 'approved' | 'rejected',
+        createdAt: saved.createdAt,
+        assignedLocation: saved.assignedLocation || undefined,
       };
     } catch (err) {
-      console.error("Failed to update reservation in PostgreSQL. Modifying JSON.", err);
+      console.error("Prisma update failed for reservation, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -475,12 +462,14 @@ export async function updateReservation(id: string, updates: Partial<StandReserv
 }
 
 export async function deleteReservation(id: string): Promise<boolean> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      const res = await pool.query('DELETE FROM reservations WHERE id = $1', [id]);
-      return (res.rowCount ?? 0) > 0;
+      const deleted = await prisma.reservation.delete({
+        where: { id },
+      });
+      return !!deleted;
     } catch (err) {
-      console.error("Failed to delete reservation in PostgreSQL.", err);
+      console.error("Prisma delete failed for reservation, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -493,42 +482,61 @@ export async function deleteReservation(id: string): Promise<boolean> {
 
 // ===== 3. VISITOR TICKETS =====
 export async function getTickets(): Promise<VisitorTicket[]> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      const res = await pool.query('SELECT * FROM tickets ORDER BY created_at DESC');
-      return res.rows.map(row => ({
-        id: row.id,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        company: row.company,
-        jobTitle: row.job_title,
-        email: row.email,
-        phone: row.phone,
-        sectorInterest: row.sector_interest,
-        createdAt: row.created_at,
-        ticketNumber: row.ticket_number
+      const list = await prisma.ticket.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+      return list.map(item => ({
+        id: item.id,
+        firstName: item.firstName,
+        lastName: item.lastName,
+        company: item.company,
+        jobTitle: item.jobTitle,
+        email: item.email,
+        phone: item.phone,
+        sectorInterest: item.sectorInterest,
+        createdAt: item.createdAt,
+        ticketNumber: item.ticketNumber,
       }));
     } catch (err) {
-      console.error("Failed to query tickets from PostgreSQL. Falling back to JSON.", err);
+      console.error("Prisma query failed for tickets, falling back.", err);
     }
   }
   return readJsonDb().tickets;
 }
 
 export async function addTicket(ticket: VisitorTicket): Promise<VisitorTicket> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      await pool.query(
-        `INSERT INTO tickets (
-          id, first_name, last_name, company, job_title, email, phone, sector_interest, created_at, ticket_number
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-        [
-          ticket.id, ticket.firstName, ticket.lastName, ticket.company, ticket.jobTitle, ticket.email, ticket.phone, ticket.sectorInterest, ticket.createdAt, ticket.ticketNumber
-        ]
-      );
-      return ticket;
+      const saved = await prisma.ticket.create({
+        data: {
+          id: ticket.id,
+          firstName: ticket.firstName,
+          lastName: ticket.lastName,
+          company: ticket.company,
+          jobTitle: ticket.jobTitle,
+          email: ticket.email,
+          phone: ticket.phone,
+          sectorInterest: ticket.sectorInterest,
+          createdAt: ticket.createdAt,
+          ticketNumber: ticket.ticketNumber,
+        },
+      });
+      return {
+        id: saved.id,
+        firstName: saved.firstName,
+        lastName: saved.lastName,
+        company: saved.company,
+        jobTitle: saved.jobTitle,
+        email: saved.email,
+        phone: saved.phone,
+        sectorInterest: saved.sectorInterest,
+        createdAt: saved.createdAt,
+        ticketNumber: saved.ticketNumber,
+      };
     } catch (err) {
-      console.error("Failed to save ticket to PostgreSQL. Saving to JSON.", err);
+      console.error("Prisma create failed for ticket, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -540,40 +548,55 @@ export async function addTicket(ticket: VisitorTicket): Promise<VisitorTicket> {
 
 // ===== 4. CONTACT MESSAGES =====
 export async function getMessages(): Promise<ContactMessage[]> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      const res = await pool.query('SELECT * FROM messages ORDER BY created_at DESC');
-      return res.rows.map(row => ({
-        id: row.id,
-        name: row.name,
-        email: row.email,
-        phone: row.phone || undefined,
-        subject: row.subject || undefined,
-        message: row.message,
-        createdAt: row.created_at,
-        read: row.read
+      const list = await prisma.message.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+      return list.map(item => ({
+        id: item.id,
+        name: item.name,
+        email: item.email,
+        phone: item.phone || undefined,
+        subject: item.subject || undefined,
+        message: item.message,
+        createdAt: item.createdAt,
+        read: item.read,
       }));
     } catch (err) {
-      console.error("Failed to query messages from PostgreSQL. Falling back to JSON.", err);
+      console.error("Prisma query failed for messages, falling back.", err);
     }
   }
   return readJsonDb().messages;
 }
 
 export async function addMessage(message: ContactMessage): Promise<ContactMessage> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      await pool.query(
-        `INSERT INTO messages (
-          id, name, email, phone, subject, message, created_at, read
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [
-          message.id, message.name, message.email, message.phone || null, message.subject || null, message.message, message.createdAt, message.read
-        ]
-      );
-      return message;
+      const saved = await prisma.message.create({
+        data: {
+          id: message.id,
+          name: message.name,
+          email: message.email,
+          phone: message.phone || null,
+          subject: message.subject || null,
+          message: message.message,
+          createdAt: message.createdAt,
+          read: message.read,
+        },
+      });
+      return {
+        id: saved.id,
+        name: saved.name,
+        email: saved.email,
+        phone: saved.phone || undefined,
+        subject: saved.subject || undefined,
+        message: saved.message,
+        createdAt: saved.createdAt,
+        read: saved.read,
+      };
     } catch (err) {
-      console.error("Failed to save message to PostgreSQL. Saving to JSON.", err);
+      console.error("Prisma create failed for message, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -583,23 +606,24 @@ export async function addMessage(message: ContactMessage): Promise<ContactMessag
 }
 
 export async function markMessageRead(id: string): Promise<ContactMessage | null> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      const res = await pool.query('UPDATE messages SET read = TRUE WHERE id = $1 RETURNING *', [id]);
-      if (res.rowCount === 0) return null;
-      const row = res.rows[0];
+      const saved = await prisma.message.update({
+        where: { id },
+        data: { read: true },
+      });
       return {
-        id: row.id,
-        name: row.name,
-        email: row.email,
-        phone: row.phone || undefined,
-        subject: row.subject || undefined,
-        message: row.message,
-        createdAt: row.created_at,
-        read: row.read
+        id: saved.id,
+        name: saved.name,
+        email: saved.email,
+        phone: saved.phone || undefined,
+        subject: saved.subject || undefined,
+        message: saved.message,
+        createdAt: saved.createdAt,
+        read: saved.read,
       };
     } catch (err) {
-      console.error("Failed to update message in PostgreSQL.", err);
+      console.error("Prisma update failed for read-message status, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -611,12 +635,14 @@ export async function markMessageRead(id: string): Promise<ContactMessage | null
 }
 
 export async function deleteMessage(id: string): Promise<boolean> {
-  if (postgresEnabled && pool) {
+  if (usePrisma && prisma) {
     try {
-      const res = await pool.query('DELETE FROM messages WHERE id = $1', [id]);
-      return (res.rowCount ?? 0) > 0;
+      const deleted = await prisma.message.delete({
+        where: { id },
+      });
+      return !!deleted;
     } catch (err) {
-      console.error("Failed to delete message in PostgreSQL.", err);
+      console.error("Prisma delete failed for message, falling back.", err);
     }
   }
   const db = readJsonDb();
