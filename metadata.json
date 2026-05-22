@@ -1,0 +1,6 @@
+{
+  "name": "Africa Pool & Spa Expo 2026",
+  "description": "Portail web officiel et système de réservation de stand / enregistrement de billets pour le salon international de la piscine et du spa de Casablanca, Maroc.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
