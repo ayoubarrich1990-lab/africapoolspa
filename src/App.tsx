@@ -67,7 +67,7 @@ export default function App() {
       setAdminUsername('');
       setAdminPassword('');
     } else {
-      setAdminLoginError('Identifiant ou mot de passe incorrect. Astuce : utilisez admin / casa2026');
+      setAdminLoginError('Identifiant ou mot de passe incorrect.');
     }
   };
   
@@ -110,6 +110,16 @@ export default function App() {
     fetchReservations();
     fetchTickets();
     fetchMessages();
+  }, []);
+
+  // Synchronise le paramètre URL ou le hash pour ouvrir le modal admin de connexion
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('admin') === 'true' || window.location.hash === '#admin') {
+        setIsAdminLoginModalOpen(true);
+      }
+    }
   }, []);
 
   const fetchExhibitors = async () => {
@@ -1278,7 +1288,7 @@ export default function App() {
                       type="text"
                       required
                       autoFocus
-                      placeholder="Identifiant (ex: admin)"
+                      placeholder="Identifiant de l'organisateur"
                       className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
                       value={adminUsername}
                       onChange={(e) => setAdminUsername(e.target.value)}
@@ -1293,19 +1303,12 @@ export default function App() {
                     <input 
                       type="password"
                       required
-                      placeholder="Mot de passe (ex: casa2026)"
+                      placeholder="Mot de passe"
                       className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
                       value={adminPassword}
                       onChange={(e) => setAdminPassword(e.target.value)}
                     />
                   </div>
-                </div>
-
-                <div className="bg-[#050f22] p-2.5 border border-white/5 rounded text-[10px] text-gray-400 text-left font-mono leading-relaxed space-y-1">
-                  <span className="text-gold font-bold uppercase tracking-wider block">ℹ️ Instructions de Démonstration :</span>
-                  <p>Utilisez les identifiants provisoires suivants :</p>
-                  <p>• Identifiant : <strong className="text-white select-all">admin</strong></p>
-                  <p>• Mot de passe : <strong className="text-white select-all">casa2026</strong></p>
                 </div>
 
                 <button 
