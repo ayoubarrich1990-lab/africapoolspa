@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
-import { createClient } from '@supabase/supabase-js';
 import type { Exhibitor, StandReservation, VisitorTicket, ContactMessage } from '../src/types.js';
 
 // Identify environment
@@ -151,51 +150,6 @@ const writeJsonDb = (db: DatabaseSchema) => {
 let prisma: PrismaClient | null = null;
 let usePrisma = false;
 
-// Integrate Supabase Client support
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
-let supabase: any = null;
-let useSupabase = false;
-let supabaseTablesExist = false;
-
-if (supabaseUrl && supabaseKey) {
-  try {
-    supabase = createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      }
-    });
-    useSupabase = true;
-    console.log("🟢 Supabase Client initiated successfully using service role / admin key.");
-  } catch (err) {
-    console.error("❌ Failed to initiate Supabase client:", err);
-    useSupabase = false;
-  }
-}
-
-export async function checkSupabaseTables(): Promise<boolean> {
-  if (!useSupabase || !supabase) {
-    supabaseTablesExist = false;
-    return false;
-  }
-  try {
-    const { error } = await supabase.from('exhibitors').select('id').limit(1);
-    if (error) {
-      console.warn("⚠️ Supabase exhibitors table not found/configured:", error.message);
-      supabaseTablesExist = false;
-      return false;
-    }
-    supabaseTablesExist = true;
-    return true;
-  } catch (e) {
-    console.warn("⚠️ Exception during Supabase table check:", e);
-    supabaseTablesExist = false;
-    return false;
-  }
-}
-
 // Prioritize fully qualified pool/non-pool connections over the localized container/kubernetes DATABASE_URL
 const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
 const isPlaceholder = !dbUrl || dbUrl.includes('xxx') || dbUrl.includes('placeholder');
@@ -218,8 +172,7 @@ function handlePrismaError(err: any, operationName: string) {
   }
 }
 
-// Only connect Prisma if Supabase credentials are NOT provided (or fallback is chosen)
-if (!useSupabase && dbUrl && !isPlaceholder) {
+if (dbUrl && !isPlaceholder) {
   try {
     // Force set environment variables required by schema.prisma so Prisma doesn't throw at initialization
     process.env.POSTGRES_PRISMA_URL = dbUrl;
@@ -233,14 +186,11 @@ if (!useSupabase && dbUrl && !isPlaceholder) {
       },
     });
     usePrisma = true;
-    console.log("🟢 Vercel Postgres connection configured with Prisma.");
+    console.log("🟢 PostgreSQL connection configured with Prisma.");
   } catch (err) {
     console.error("❌ Failed to initiate Prisma client:", err);
     usePrisma = false;
   }
-} else if (useSupabase) {
-  console.log("🟢 running live in Supabase API connector mode. Prisma is kept as sub-fallback.");
-  usePrisma = false;
 } else {
   console.log("ℹ️ POSTGRES_PRISMA_URL placeholder or missing. Running in local JSON Database Fallback mode.");
   usePrisma = false;
@@ -248,111 +198,6 @@ if (!useSupabase && dbUrl && !isPlaceholder) {
 
 // Seed the base PostgreSQL tables automatically if they are fully empty
 export async function setupDatabase(): Promise<boolean> {
-  // Seamlessly support automatic seeding if Supabase is connected
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        console.log("🛠️ checking and provisioning default data inside Supabase tables...");
-        
-        // 1. EXHIBITORS SEED IN SUPABASE
-        const { count: exhibitorCount, error: countExhibErr } = await supabase
-          .from('exhibitors')
-          .select('*', { count: 'exact', head: true });
-          
-        if (!countExhibErr && (exhibitorCount === null || exhibitorCount === 0)) {
-          console.log("🌱 Supabase is empty for Exhibitors. Seeding default tables...");
-          const initial = getInitialDb();
-          await supabase.from('exhibitors').insert(
-            initial.exhibitors.map(ex => ({
-              id: ex.id,
-              name: ex.name,
-              highlight_word: ex.highlightWord || null,
-              logo_color: ex.logoColor || null,
-            }))
-          );
-        }
-
-        // 2. RESERVATIONS SEED IN SUPABASE
-        const { count: reservationCount, error: countResErr } = await supabase
-          .from('reservations')
-          .select('*', { count: 'exact', head: true });
-          
-        if (!countResErr && (reservationCount === null || reservationCount === 0)) {
-          console.log("🌱 Supabase is empty for Reservations. Seeding default tables...");
-          const initial = getInitialDb();
-          await supabase.from('reservations').insert(
-            initial.reservations.map(res => ({
-              id: res.id,
-              company_name: res.companyName,
-              contact_name: res.contactName,
-              email: res.email,
-              phone: res.phone,
-              sector: res.sector,
-              stand_size: res.standSize,
-              stand_type: res.standType,
-              description: res.description || null,
-              status: res.status,
-              created_at: res.createdAt,
-              assigned_location: res.assignedLocation || null,
-            }))
-          );
-        }
-
-        // 3. TICKETS SEED IN SUPABASE
-        const { count: ticketCount, error: countTktErr } = await supabase
-          .from('tickets')
-          .select('*', { count: 'exact', head: true });
-          
-        if (!countTktErr && (ticketCount === null || ticketCount === 0)) {
-          console.log("🌱 Supabase is empty for Visitor Tickets. Seeding default tables...");
-          const initial = getInitialDb();
-          await supabase.from('tickets').insert(
-            initial.tickets.map(tkt => ({
-              id: tkt.id,
-              first_name: tkt.firstName,
-              last_name: tkt.lastName,
-              company: tkt.company,
-              job_title: tkt.jobTitle,
-              email: tkt.email,
-              phone: tkt.phone,
-              sector_interest: tkt.sectorInterest,
-              created_at: tkt.createdAt,
-              ticket_number: tkt.ticketNumber,
-            }))
-          );
-        }
-
-        // 4. MESSAGES SEED IN SUPABASE
-        const { count: messageCount, error: countMsgErr } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true });
-          
-        if (!countMsgErr && (messageCount === null || messageCount === 0)) {
-          console.log("🌱 Supabase is empty for Messages. Seeding default tables...");
-          const initial = getInitialDb();
-          await supabase.from('messages').insert(
-            initial.messages.map(msg => ({
-              id: msg.id,
-              name: msg.name,
-              email: msg.email,
-              phone: msg.phone || null,
-              subject: msg.subject || null,
-              message: msg.message,
-              created_at: msg.createdAt,
-              read: msg.read,
-            }))
-          );
-        }
-
-        console.log("✨ Supabase tables successfully seeded and verified.");
-        return true;
-      } catch (err) {
-        console.error("❌ Exception during Supabase seeding:", err);
-      }
-    }
-  }
-
   if (!usePrisma || !prisma) return false;
   try {
     console.log("🛠️ Checking and provisioning default data inside PostgreSQL database using Prisma...");
@@ -455,28 +300,6 @@ export async function setupDatabase(): Promise<boolean> {
 
 // ===== 1. EXHIBITORS =====
 export async function getExhibitors(): Promise<Exhibitor[]> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { data, error } = await supabase
-          .from('exhibitors')
-          .select('*')
-          .order('name', { ascending: true });
-        if (!error && data) {
-          return data.map(item => ({
-            id: item.id,
-            name: item.name,
-            highlightWord: item.highlight_word || undefined,
-            logoColor: item.logo_color || undefined,
-          }));
-        }
-        console.warn("⚠️ Supabase error in getExhibitors:", error ? error.message : "No data");
-      } catch (err) {
-        console.error("❌ Exception in getExhibitors via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const list = await prisma.exhibitor.findMany({
@@ -496,25 +319,6 @@ export async function getExhibitors(): Promise<Exhibitor[]> {
 }
 
 export async function addExhibitor(exhibitor: Exhibitor): Promise<Exhibitor> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { error } = await supabase
-          .from('exhibitors')
-          .insert({
-            id: exhibitor.id,
-            name: exhibitor.name,
-            highlight_word: exhibitor.highlightWord || null,
-            logo_color: exhibitor.logoColor || null,
-          });
-        if (!error) return exhibitor;
-        console.warn("⚠️ Supabase error in addExhibitor:", error.message);
-      } catch (err) {
-        console.error("❌ Exception in addExhibitor via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const saved = await prisma.exhibitor.create({
@@ -542,21 +346,6 @@ export async function addExhibitor(exhibitor: Exhibitor): Promise<Exhibitor> {
 }
 
 export async function deleteExhibitor(id: string): Promise<boolean> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { error } = await supabase
-          .from('exhibitors')
-          .delete()
-          .eq('id', id);
-        if (!error) return true;
-        console.warn("⚠️ Supabase error in deleteExhibitor:", error.message);
-      } catch (err) {
-        console.error("❌ Exception in deleteExhibitor via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const deleted = await prisma.exhibitor.delete({
@@ -577,36 +366,6 @@ export async function deleteExhibitor(id: string): Promise<boolean> {
 
 // ===== 2. STAND RESERVATIONS =====
 export async function getReservations(): Promise<StandReservation[]> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { data, error } = await supabase
-          .from('reservations')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (!error && data) {
-          return data.map(item => ({
-            id: item.id,
-            companyName: item.company_name,
-            contactName: item.contact_name,
-            email: item.email,
-            phone: item.phone,
-            sector: item.sector,
-            standSize: item.stand_size,
-            standType: item.stand_type as 'standard' | 'premium',
-            description: item.description || undefined,
-            status: item.status as 'pending' | 'approved' | 'rejected',
-            createdAt: item.created_at,
-            assignedLocation: item.assigned_location || undefined,
-          }));
-        }
-        console.warn("⚠️ Supabase error in getReservations:", error ? error.message : "No data");
-      } catch (err) {
-        console.error("❌ Exception in getReservations via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const list = await prisma.reservation.findMany({
@@ -634,33 +393,6 @@ export async function getReservations(): Promise<StandReservation[]> {
 }
 
 export async function addReservation(reservation: StandReservation): Promise<StandReservation> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { error } = await supabase
-          .from('reservations')
-          .insert({
-            id: reservation.id,
-            company_name: reservation.companyName,
-            contact_name: reservation.contactName,
-            email: reservation.email,
-            phone: reservation.phone,
-            sector: reservation.sector,
-            stand_size: reservation.standSize,
-            stand_type: reservation.standType,
-            description: reservation.description || null,
-            status: reservation.status,
-            created_at: reservation.createdAt,
-            assigned_location: reservation.assignedLocation || null,
-          });
-        if (!error) return reservation;
-        console.warn("⚠️ Supabase error in addReservation:", error.message);
-      } catch (err) {
-        console.error("❌ Exception in addReservation via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const saved = await prisma.reservation.create({
@@ -704,52 +436,6 @@ export async function addReservation(reservation: StandReservation): Promise<Sta
 }
 
 export async function updateReservation(id: string, updates: Partial<StandReservation>): Promise<StandReservation | null> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        // Map camelCase keys to snake_case for Supabase
-        const data: any = {};
-        if (updates.companyName !== undefined) data.company_name = updates.companyName;
-        if (updates.contactName !== undefined) data.contact_name = updates.contactName;
-        if (updates.email !== undefined) data.email = updates.email;
-        if (updates.phone !== undefined) data.phone = updates.phone;
-        if (updates.sector !== undefined) data.sector = updates.sector;
-        if (updates.standSize !== undefined) data.stand_size = Number(updates.standSize);
-        if (updates.standType !== undefined) data.stand_type = updates.standType;
-        if (updates.description !== undefined) data.description = updates.description || null;
-        if (updates.status !== undefined) data.status = updates.status;
-        if (updates.assignedLocation !== undefined) data.assigned_location = updates.assignedLocation || null;
-
-        const { data: updatedRows, error } = await supabase
-          .from('reservations')
-          .update(data)
-          .eq('id', id)
-          .select('*');
-
-        if (!error && updatedRows && updatedRows.length > 0) {
-          const saved = updatedRows[0];
-          return {
-            id: saved.id,
-            companyName: saved.company_name,
-            contactName: saved.contact_name,
-            email: saved.email,
-            phone: saved.phone,
-            sector: saved.sector,
-            standSize: saved.stand_size,
-            standType: saved.stand_type as 'standard' | 'premium',
-            description: saved.description || undefined,
-            status: saved.status as 'pending' | 'approved' | 'rejected',
-            createdAt: saved.created_at,
-            assignedLocation: saved.assigned_location || undefined,
-          };
-        }
-        console.warn("⚠️ Supabase error in updateReservation:", error ? error.message : "Empty response");
-      } catch (err) {
-        console.error("❌ Exception in updateReservation via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       // Create updates object dynamically with only valid Prisma fields
@@ -799,21 +485,6 @@ export async function updateReservation(id: string, updates: Partial<StandReserv
 }
 
 export async function deleteReservation(id: string): Promise<boolean> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { error } = await supabase
-          .from('reservations')
-          .delete()
-          .eq('id', id);
-        if (!error) return true;
-        console.warn("⚠️ Supabase error in deleteReservation:", error.message);
-      } catch (err) {
-        console.error("❌ Exception in deleteReservation via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const deleted = await prisma.reservation.delete({
@@ -834,34 +505,6 @@ export async function deleteReservation(id: string): Promise<boolean> {
 
 // ===== 3. VISITOR TICKETS =====
 export async function getTickets(): Promise<VisitorTicket[]> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { data, error } = await supabase
-          .from('tickets')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (!error && data) {
-          return data.map(item => ({
-            id: item.id,
-            firstName: item.first_name,
-            lastName: item.last_name,
-            company: item.company,
-            jobTitle: item.job_title,
-            email: item.email,
-            phone: item.phone,
-            sectorInterest: item.sector_interest,
-            createdAt: item.created_at,
-            ticketNumber: item.ticket_number,
-          }));
-        }
-        console.warn("⚠️ Supabase error in getTickets:", error ? error.message : "No data");
-      } catch (err) {
-        console.error("❌ Exception in getTickets via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const list = await prisma.ticket.findMany({
@@ -887,31 +530,6 @@ export async function getTickets(): Promise<VisitorTicket[]> {
 }
 
 export async function addTicket(ticket: VisitorTicket): Promise<VisitorTicket> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { error } = await supabase
-          .from('tickets')
-          .insert({
-            id: ticket.id,
-            first_name: ticket.firstName,
-            last_name: ticket.lastName,
-            company: ticket.company,
-            job_title: ticket.jobTitle,
-            email: ticket.email,
-            phone: ticket.phone,
-            sector_interest: ticket.sectorInterest,
-            created_at: ticket.createdAt,
-            ticket_number: ticket.ticketNumber,
-          });
-        if (!error) return ticket;
-        console.warn("⚠️ Supabase error in addTicket:", error.message);
-      } catch (err) {
-        console.error("❌ Exception in addTicket via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const saved = await prisma.ticket.create({
@@ -953,32 +571,6 @@ export async function addTicket(ticket: VisitorTicket): Promise<VisitorTicket> {
 
 // ===== 4. CONTACT MESSAGES =====
 export async function getMessages(): Promise<ContactMessage[]> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { data, error } = await supabase
-          .from('messages')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (!error && data) {
-          return data.map(item => ({
-            id: item.id,
-            name: item.name,
-            email: item.email,
-            phone: item.phone || undefined,
-            subject: item.subject || undefined,
-            message: item.message,
-            createdAt: item.created_at,
-            read: item.read,
-          }));
-        }
-        console.warn("⚠️ Supabase error in getMessages:", error ? error.message : "No data");
-      } catch (err) {
-        console.error("❌ Exception in getMessages via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const list = await prisma.message.findMany({
@@ -1002,29 +594,6 @@ export async function getMessages(): Promise<ContactMessage[]> {
 }
 
 export async function addMessage(message: ContactMessage): Promise<ContactMessage> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { error } = await supabase
-          .from('messages')
-          .insert({
-            id: message.id,
-            name: message.name,
-            email: message.email,
-            phone: message.phone || null,
-            subject: message.subject || null,
-            message: message.message,
-            created_at: message.createdAt,
-            read: message.read,
-          });
-        if (!error) return message;
-        console.warn("⚠️ Supabase error in addMessage:", error.message);
-      } catch (err) {
-        console.error("❌ Exception in addMessage via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const saved = await prisma.message.create({
@@ -1060,34 +629,6 @@ export async function addMessage(message: ContactMessage): Promise<ContactMessag
 }
 
 export async function markMessageRead(id: string): Promise<ContactMessage | null> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { data: updatedRows, error } = await supabase
-          .from('messages')
-          .update({ read: true })
-          .eq('id', id)
-          .select('*');
-        if (!error && updatedRows && updatedRows.length > 0) {
-          const saved = updatedRows[0];
-          return {
-            id: saved.id,
-            name: saved.name,
-            email: saved.email,
-            phone: saved.phone || undefined,
-            subject: saved.subject || undefined,
-            message: saved.message,
-            createdAt: saved.created_at,
-            read: saved.read,
-          };
-        }
-        console.warn("⚠️ Supabase error in markMessageRead:", error ? error.message : "Empty response");
-      } catch (err) {
-        console.error("❌ Exception in markMessageRead via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const saved = await prisma.message.update({
@@ -1117,21 +658,6 @@ export async function markMessageRead(id: string): Promise<ContactMessage | null
 }
 
 export async function deleteMessage(id: string): Promise<boolean> {
-  if (useSupabase && supabase) {
-    await checkSupabaseTables();
-    if (supabaseTablesExist) {
-      try {
-        const { error } = await supabase
-          .from('messages')
-          .delete()
-          .eq('id', id);
-        if (!error) return true;
-        console.warn("⚠️ Supabase error in deleteMessage:", error.message);
-      } catch (err) {
-        console.error("❌ Exception in deleteMessage via Supabase:", err);
-      }
-    }
-  }
   if (usePrisma && prisma) {
     try {
       const deleted = await prisma.message.delete({
@@ -1156,80 +682,58 @@ export async function getDbStatus() {
   let isPlaceholderEnv = true;
   let maskedUrl = '';
   
-  if (useSupabase && supabase) {
-    providerType = 'Supabase client REST API';
-    isPlaceholderEnv = false;
-    maskedUrl = 'https://kftjutwnxfwjruhsuvrw.supabase.co [REST API]';
+  // Standard Prisma check
+  const connectionString = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || '';
+  isPlaceholderEnv = !connectionString || connectionString.includes('xxx') || connectionString.includes('placeholder');
+  
+  if (usePrisma && prisma) {
     try {
-      const { data, error } = await supabase.from('exhibitors').select('id').limit(1);
-      if (error) {
-        actuallyConnected = true; // Connection was successfully made, key is valid!
-        supabaseTablesExist = false;
-        connectionError = `PGRST205: Tables non trouvées dans Supabase. ${error.message}.`;
-      } else {
-        actuallyConnected = true;
-        supabaseTablesExist = true;
-      }
+      await prisma.exhibitor.count();
+      actuallyConnected = true;
     } catch (err: any) {
       actuallyConnected = false;
-      supabaseTablesExist = false;
       connectionError = err.message || String(err);
     }
-  } else {
-    // Standard Prisma check
-    const connectionString = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || '';
-    isPlaceholderEnv = !connectionString || connectionString.includes('xxx') || connectionString.includes('placeholder');
-    
-    if (usePrisma && prisma) {
-      try {
-        await prisma.exhibitor.count();
-        actuallyConnected = true;
-      } catch (err: any) {
-        actuallyConnected = false;
-        connectionError = err.message || String(err);
-      }
-    }
+  }
 
-    if (connectionString) {
-      if (connectionString.includes('supabase') || connectionString.includes('pooler.supabase')) {
-        providerType = 'Supabase PostgreSQL';
-      } else if (connectionString.includes('neon') || connectionString.includes('neon.tech')) {
-        providerType = 'Neon PostgreSQL';
-      } else if (connectionString.includes('postgres') || connectionString.includes('postgresql')) {
-        providerType = 'Base de données PostgreSQL';
-      }
+  if (connectionString) {
+    if (connectionString.includes('supabase') || connectionString.includes('pooler.supabase')) {
+      providerType = 'Supabase PostgreSQL';
+    } else if (connectionString.includes('neon') || connectionString.includes('neon.tech')) {
+      providerType = 'Neon PostgreSQL';
+    } else if (connectionString.includes('postgres') || connectionString.includes('postgresql')) {
+      providerType = 'Base de données PostgreSQL';
     }
+  }
 
-    if (connectionString) {
-      try {
-        const parts = connectionString.split('@');
-        if (parts.length > 1) {
-          const firstPart = parts[0];
-          const secondPart = parts[1];
-          const userPass = firstPart.split('://');
-          if (userPass.length > 1) {
-            const credentials = userPass[1].split(':');
-            const username = credentials[0];
-            maskedUrl = `${userPass[0]}://${username}:******@${secondPart}`;
-          } else {
-            maskedUrl = `postgresql://******@${secondPart}`;
-          }
+  if (connectionString) {
+    try {
+      const parts = connectionString.split('@');
+      if (parts.length > 1) {
+        const firstPart = parts[0];
+        const secondPart = parts[1];
+        const userPass = firstPart.split('://');
+        if (userPass.length > 1) {
+          const credentials = userPass[1].split(':');
+          const username = credentials[0];
+          maskedUrl = `${userPass[0]}://${username}:******@${secondPart}`;
         } else {
-          maskedUrl = connectionString.substring(0, 15) + '...';
+          maskedUrl = `postgresql://******@${secondPart}`;
         }
-      } catch (e) {
-        maskedUrl = 'URL de connexion masquée';
+      } else {
+        maskedUrl = connectionString.substring(0, 15) + '...';
       }
+    } catch (e) {
+      maskedUrl = 'URL de connexion masquée';
     }
   }
 
   return {
-    usePrisma: usePrisma || (useSupabase && supabaseTablesExist),
+    usePrisma,
     actuallyConnected,
     isPlaceholder: isPlaceholderEnv,
     providerType,
     maskedUrl,
-    connectionError,
-    supabaseTablesExist
+    connectionError
   };
 }
