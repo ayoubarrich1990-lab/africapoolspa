@@ -25,7 +25,11 @@ import {
   Layers, 
   Printer, 
   CheckCircle2, 
-  ExternalLink 
+  ExternalLink,
+  Database,
+  Wifi,
+  WifiOff,
+  Copy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -95,6 +99,19 @@ export default function App() {
   const [newExhibitorForm, setNewExhibitorForm] = useState({ name: '', highlightWord: '', logoColor: '#c8922a' });
   const [isAddingExhibitor, setIsAddingExhibitor] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  // Database status and verification states
+  const [dbStatus, setDbStatus] = useState<{
+    usePrisma: boolean;
+    actuallyConnected: boolean;
+    isPlaceholder: boolean;
+    providerType: string;
+    maskedUrl: string;
+    connectionError: string | null;
+  } | null>(null);
+  const [loadingDbStatus, setLoadingDbStatus] = useState(false);
+  const [showDbDiagnostics, setShowDbDiagnostics] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
 
   // Securely request and route admin console access and tab redirections
   const openAdminConsoleOrLogin = (defaultTab?: 'stands' | 'visitors' | 'messages' | 'exhibitors') => {
@@ -185,6 +202,27 @@ export default function App() {
       console.error('Error fetching messages log:', e);
     }
   };
+
+  const fetchDbStatus = async () => {
+    try {
+      setLoadingDbStatus(true);
+      const res = await fetch('/api/db-status');
+      if (res.ok) {
+        const data = await res.json();
+        setDbStatus(data);
+      }
+    } catch (e) {
+      console.error('Error fetching database connection details:', e);
+    } finally {
+      setLoadingDbStatus(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdminPanelOpen) {
+      fetchDbStatus();
+    }
+  }, [isAdminPanelOpen]);
 
   // Submit Contact Us Client Action
   const handleContactSubmit = async (e: React.FormEvent) => {
@@ -1444,6 +1482,142 @@ export default function App() {
               {/* Data listing (Flex Scrollbody) */}
               <div className="p-6 flex-1 overflow-y-auto space-y-6 text-left">
                 
+                {/* Real-time DB Connection Monitor (Support Supabase directly) */}
+                <div className="bg-[#051330] border border-gold/25 rounded-lg p-4 mb-1" id="supabase-db-diagnostics-card">
+                  <div className="flex items-center justify-between flex-wrap gap-2 mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded bg-gold/10">
+                        <Database className="h-4 w-4 text-gold shrink-0" />
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-mono tracking-wider text-gray-400 uppercase leading-none block">
+                          Base de Données
+                        </span>
+                        <h5 className="text-xs font-bold text-white mt-0.5">
+                          {dbStatus ? dbStatus.providerType : 'Détection du statut...'}
+                        </h5>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {loadingDbStatus ? (
+                        <div className="flex items-center gap-1 text-[10px] text-gray-400 font-mono">
+                          <Loader2 className="h-3 w-3 animate-spin text-gold" />
+                          <span>Pinging...</span>
+                        </div>
+                      ) : dbStatus?.actuallyConnected ? (
+                        <div className="flex items-center gap-1.5 text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded font-mono font-bold">
+                          <span className="relative flex h-1.5 w-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                          </span>
+                          <span>EN LIGNE (Supabase / Postgres)</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/25 px-2 py-0.5 rounded font-mono font-bold" title="Utilisation de fichiers locaux temporaires">
+                          <span className="relative flex h-1.5 w-1.5">
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                          </span>
+                          <span>MODE FALLBACK LOCAL</span>
+                        </div>
+                      )}
+
+                      <button 
+                        onClick={fetchDbStatus}
+                        className="p-1 text-gold hover:bg-white/5 rounded transition-colors"
+                        title="Rafraîchir l'état de connexion"
+                      >
+                        <svg className={`h-3.5 w-3.5 ${loadingDbStatus ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Masked database URL showcase */}
+                  {dbStatus && (
+                    <div className="text-[10.5px] bg-[#030d22] rounded border border-gray-800/80 p-2.5 font-mono space-y-1" id="supabase-details-box">
+                      <div className="flex items-center justify-between text-[9px] text-gray-500">
+                        <span>Chaîne de connexion active :</span>
+                        <span className="text-[8px] uppercase font-bold tracking-wider px-1 bg-gold/10 text-gold rounded font-mono">
+                          {dbStatus.usePrisma ? 'Prisma Client' : 'SQLite fallback'}
+                        </span>
+                      </div>
+                      <div className="text-gray-300 break-all pr-6 relative flex items-center justify-between">
+                        <span className="truncate max-w-[90%] font-mono text-gold text-[10px]">
+                          {dbStatus.isPlaceholder || !dbStatus.maskedUrl 
+                            ? 'expo-database.json (Fichier Local SQLite/JSON)' 
+                            : dbStatus.maskedUrl
+                          }
+                        </span>
+                        {!dbStatus.isPlaceholder && dbStatus.maskedUrl && (
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(dbStatus.maskedUrl);
+                              setCopiedText(true);
+                              setTimeout(() => setCopiedText(false), 2000);
+                            }}
+                            className="absolute right-0 hover:text-gold text-gray-500 transition-colors"
+                            title="Copier l'URL de connexion masquée"
+                          >
+                            {copiedText ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-2.5 w-2.5" />}
+                          </button>
+                        )}
+                      </div>
+
+                      {dbStatus.connectionError && (
+                        <div className="pt-1.5 border-t border-rose-500/15 text-[9.5px] text-rose-400 mt-1 leading-normal">
+                          <div className="font-bold uppercase tracking-wider text-[8px] text-rose-300">Détail de l'erreur PostgreSQL / Supabase :</div>
+                          <p className="font-mono bg-rose-950/20 p-1 rounded border border-rose-500/10 mt-0.5 select-text overflow-x-auto max-h-20">{dbStatus.connectionError}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Config assistance guide */}
+                  <div className="mt-2 pl-0.5">
+                    <button
+                      onClick={() => setShowDbDiagnostics(!showDbDiagnostics)}
+                      className="text-[9px] text-gold hover:text-white uppercase font-bold tracking-wider flex items-center gap-1 focus:outline-none transition-colors"
+                    >
+                      <span>{showDbDiagnostics ? '▼ Masquer' : '▶'} Comment connecter votre base Supabase ?</span>
+                    </button>
+
+                    {showDbDiagnostics && (
+                      <div className="mt-2 text-xs text-gray-300 space-y-1.5 border-l border-gold/25 pl-3 py-0.5" id="supabase-step-guide">
+                        <p className="text-[11px] leading-relaxed text-gray-300">
+                          Pour connecter à vie votre propre base de données relationnelle <strong>Supabase (PostgreSQL)</strong>, procédez ainsi :
+                        </p>
+                        <ol className="list-decimal list-inside space-y-1 text-[10px] text-gray-400 font-sans leading-normal">
+                          <li>
+                            Créez un projet gratuit sur{' '}
+                            <a 
+                              href="https://supabase.com" 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-gold underline hover:text-white inline-flex items-center gap-0.5"
+                            >
+                              supabase.com <ExternalLink className="h-2 w-2 inline" />
+                            </a>
+                          </li>
+                          <li>
+                            Allez dans <strong>Settings &gt; Database &gt; Connection Strings</strong>.
+                          </li>
+                          <li>
+                            Copiez l'URI (de préférence le mode <strong>Transaction / PgBouncer</strong> sur le port 6543) et ajoutez-la en tant que secret de l'application dans les configurations d'environnement de la plateforme avec le nom de variable :
+                            <div className="bg-black/40 p-1 rounded font-mono text-[9px] text-gray-200 mt-1">
+                              <code className="text-gold font-bold select-all">POSTGRES_PRISMA_URL="votre_uri_supabase"</code>
+                            </div>
+                          </li>
+                        </ol>
+                        <p className="text-[9px] text-gray-400 italic leading-snug">
+                          💡 Dès que cette clé secrète sera renseignée, l'application basculera instantanément au statut <span className="text-emerald-400 font-bold">EN LIGNE</span>, créera vos tables par Prisma, et y synchronisera les données de l'Exposition !
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {adminTab === 'stands' && (
                   <div className="space-y-4">
                     <div className="border-b border-gray-800 pb-2">

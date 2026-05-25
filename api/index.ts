@@ -15,6 +15,7 @@ import {
   addMessage,
   markMessageRead,
   deleteMessage,
+  getDbStatus,
 } from './db.js';
 
 const app = express();
@@ -258,6 +259,16 @@ app.delete('/api/messages/:id', async (req, res) => {
     res.json({ success: true, message: 'Message supprimé.' });
   } catch (err) {
     res.status(500).json({ error: 'Erreur serveur lors de la suppression du message.' });
+  }
+});
+
+// 5. DATABASE DIAGNOSTICS & STATUS API
+app.get('/api/db-status', async (req, res) => {
+  try {
+    const status = await getDbStatus();
+    res.json(status);
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur lors de la récupération du statut de la base de données.' });
   }
 });
 

@@ -16,56 +16,64 @@ export const Logo: React.FC<LogoProps> = ({
   const accentColor = 'text-gold'; // Gold accent
   const [imgFailed, setImgFailed] = useState(false);
 
-  // Stylized Vector Symbol (Abstract Golden Water Drop & Wave in a Shield/Circle)
+  // Stylized Vector Symbol (Abstract Wave & Water Drops for Africa Pool & Spa brand identity)
   const Symbol = () => {
     if (imgFailed) {
       return (
         <svg 
           viewBox="0 0 100 100" 
-          className="h-11 w-11 flex-shrink-0" 
+          className="h-11 w-11 flex-shrink-0 text-gold" 
           fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns="https://h5g5-fm.hstgr.io/ad9db43cbed30622/files/public_html/www.svg"
         >
-          {/* Outer elegant thin golden hexagonal or circular frame */}
-          <circle cx="50" cy="50" r="45" stroke="#c8922a" strokeWidth="1.5" strokeOpacity="0.6" strokeDasharray="2 1" />
-          <circle cx="50" cy="50" r="41" stroke="#c8922a" strokeWidth="1.5" />
+          {/* Golden and White linear outer gradient ring */}
+          <circle cx="50" cy="50" r="44" stroke="url(#logoGoldGrad)" strokeWidth="2.5" strokeOpacity="0.9" />
+          <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="3 2" />
           
-          {/* Abstract Water Waves (Pool) & Rising Drop (Spa / Wellbeing) */}
+          {/* Sleek water ripple / swimming pool lanes flowing through */}
           <path 
-            d="M25 65 C 35 55, 40 75, 50 65 C 60 55, 65 75, 75 65" 
-            stroke="#c8922a" 
+            d="M22 55 C 32 45, 42 65, 52 55 C 62 45, 72 65, 82 55" 
+            stroke="url(#logoGoldGrad)" 
             strokeWidth="3.5" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
           />
           <path 
-            d="M30 75 C 38 68, 42 82, 50 75 C 58 68, 62 82, 70 75" 
+            d="M26 65 C 34 58, 42 72, 50 65 C 58 58, 66 72, 74 65" 
             stroke={light ? "#ffffff" : "#0a1f44"} 
             strokeWidth="2.5" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
           />
-          
-          {/* Golden Water Drop */}
           <path 
-            d="M50 22 C 50 22, 36 40, 36 48 C 36 55.7, 42.3 62, 50 62 C 57.7 62, 64 55.7, 64 48 C 64 40, 50 22, 50 22 Z" 
-            fill="url(#goldGradient)" 
-            opacity="0.95"
+            d="M32 75 C 38 71, 44 79, 50 75 C 56 71, 62 79, 68 75" 
+            stroke="url(#logoGoldGrad)" 
+            strokeWidth="1.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            opacity="0.6"
           />
           
-          {/* Light highlight inside the drop */}
+          {/* Pristine teardrop for spa and relaxation concept */}
           <path 
-            d="M46 38 C 44 42, 42 46, 42 48" 
+            d="M50 18 C 50 18, 38 34, 38 41 C 38 47.6, 43.4 53, 50 53 C 56.6 53, 62 47.6, 62 41 C 62 34, 50 18, 50 18 Z" 
+            fill="url(#logoGoldGrad)" 
+          />
+          
+          {/* Inner curved light reflection highlight */}
+          <path 
+            d="M45.5 35.5 C 43 39.5, 43 42, 43.5 43.5" 
             stroke="#ffffff" 
             strokeWidth="1.5" 
             strokeLinecap="round" 
+            opacity="0.9"
           />
 
           <defs>
-            <linearGradient id="goldGradient" x1="50" y1="22" x2="50" y2="62" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#f3e7c4" />
+            <linearGradient id="logoGoldGrad" x1="50" y1="18" x2="50" y2="78" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#f7e1a3" />
               <stop offset="50%" stopColor="#c8922a" />
-              <stop offset="100%" stopColor="#8a5f13" />
+              <stop offset="100%" stopColor="#9a6b18" />
             </linearGradient>
           </defs>
         </svg>
@@ -74,7 +82,7 @@ export const Logo: React.FC<LogoProps> = ({
 
     return (
       <img 
-        src="https://raw.githubusercontent.com/ayoubarrich1990-lab/africapoolspa/d683d75a7d91c261251be9e6ca617675b430e519/logo%20blanc%20africa%20pool%40300x.png"
+        src="https://h5g5-fm.hstgr.io/ad9db43cbed30622/files/public_html/www.svg"
         alt="Africa Pool & Spa Logo"
         className="h-11 w-auto object-contain flex-shrink-0 bg-transparent transition-opacity duration-300"
         referrerPolicy="no-referrer"
@@ -114,20 +122,6 @@ export const Logo: React.FC<LogoProps> = ({
   return (
     <div className={`flex items-center gap-3.5 select-none ${className}`} id="logo-branding-horizontal">
       <Symbol />
-      {imgFailed && (
-        <div className="flex flex-col font-sans">
-          <span className="text-[10px] text-gold tracking-[0.28em] font-black uppercase leading-none font-mono">
-            AFRICA POOL &amp; SPA
-          </span>
-          <div className={`font-serif ${primaryColor} font-black text-xl lg:text-2xl leading-tight flex items-center gap-1.5 pt-0.5`}>
-            <span className="tracking-tight">EXPO</span> 
-            <span className="text-gold font-sans font-black">2026</span>
-          </div>
-          <span className={`text-[8px] ${subtitleColor} uppercase tracking-widest leading-none pt-0.5`}>
-            OFEC Casablanca, Maroc
-          </span>
-        </div>
-      )}
     </div>
   );
 };
