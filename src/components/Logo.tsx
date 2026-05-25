@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logoUrl from '../assets/logo.svg';
 
 interface LogoProps {
   className?: string;
@@ -11,117 +12,109 @@ export const Logo: React.FC<LogoProps> = ({
   variant = 'horizontal', 
   light = true 
 }) => {
-  const primaryColor = light ? 'text-white' : 'text-navy';
-  const subtitleColor = light ? 'text-white/60' : 'text-navy/70';
-  const accentColor = 'text-gold'; // Gold accent
-  const [imgFailed, setImgFailed] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
-  // Stylized Vector Symbol (Abstract Wave & Water Drops for Africa Pool & Spa brand identity)
-  const Symbol = () => {
-    if (imgFailed) {
-      return (
-        <svg 
-          viewBox="0 0 100 100" 
-          className="h-11 w-11 flex-shrink-0 text-gold" 
-          fill="none" 
-          xmlns="https://h5g5-fm.hstgr.io/ad9db43cbed30622/files/public_html/www.svg"
-        >
-          {/* Golden and White linear outer gradient ring */}
-          <circle cx="50" cy="50" r="44" stroke="url(#logoGoldGrad)" strokeWidth="2.5" strokeOpacity="0.9" />
-          <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="3 2" />
-          
-          {/* Sleek water ripple / swimming pool lanes flowing through */}
-          <path 
-            d="M22 55 C 32 45, 42 65, 52 55 C 62 45, 72 65, 82 55" 
-            stroke="url(#logoGoldGrad)" 
-            strokeWidth="3.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-          />
-          <path 
-            d="M26 65 C 34 58, 42 72, 50 65 C 58 58, 66 72, 74 65" 
-            stroke={light ? "#ffffff" : "#0a1f44"} 
-            strokeWidth="2.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-          />
-          <path 
-            d="M32 75 C 38 71, 44 79, 50 75 C 56 71, 62 79, 68 75" 
-            stroke="url(#logoGoldGrad)" 
-            strokeWidth="1.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            opacity="0.6"
-          />
-          
-          {/* Pristine teardrop for spa and relaxation concept */}
-          <path 
-            d="M50 18 C 50 18, 38 34, 38 41 C 38 47.6, 43.4 53, 50 53 C 56.6 53, 62 47.6, 62 41 C 62 34, 50 18, 50 18 Z" 
-            fill="url(#logoGoldGrad)" 
-          />
-          
-          {/* Inner curved light reflection highlight */}
-          <path 
-            d="M45.5 35.5 C 43 39.5, 43 42, 43.5 43.5" 
-            stroke="#ffffff" 
-            strokeWidth="1.5" 
-            strokeLinecap="round" 
-            opacity="0.9"
-          />
+  // High-Quality Self-Contained Vector Symbol (Abstract Africa shape & water waves for brand identity)
+  const DefaultSymbol = () => {
+    return (
+      <svg 
+        viewBox="0 0 100 100" 
+        className="h-12 w-12 flex-shrink-0 text-gold" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Background elegant gold outer ring with subtle gradient */}
+        <circle 
+          cx="50" 
+          cy="50" 
+          r="45" 
+          stroke="url(#logoGoldGrad)" 
+          strokeWidth="2" 
+          fill={light ? "rgba(255, 255, 255, 0.03)" : "rgba(10, 31, 68, 0.02)"} 
+        />
+        <circle 
+          cx="50" 
+          cy="50" 
+          r="41" 
+          stroke={light ? "rgba(255, 255, 255, 0.15)" : "rgba(10, 31, 68, 0.08)"} 
+          strokeWidth="1" 
+          strokeDasharray="3 2" 
+        />
+        
+        {/* Abstract Golden African Continent Silhouette with high premium details */}
+        <path 
+          d="M50 20 C54 20, 58 21, 62 24 C65 27, 68 31, 68 35 C68 38, 66 40, 65 42 C64 43, 65 45, 66 47 C67 50, 65 54, 63 57 C59 63, 56 69, 53 75 C51 78, 49 81, 47 81 C45 81, 44 78, 44 75 C44 72, 42 69, 40 66 C38 62, 34 60, 31 57 C28 54, 26 51, 26 46 C26 42, 28 37, 32 33 C35 30, 41 27, 45 25 Z" 
+          fill="url(#logoGoldGrad)" 
+          opacity="0.95"
+        />
 
-          <defs>
-            <linearGradient id="logoGoldGrad" x1="50" y1="18" x2="50" y2="78" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#f7e1a3" />
-              <stop offset="50%" stopColor="#c8922a" />
-              <stop offset="100%" stopColor="#9a6b18" />
-            </linearGradient>
-          </defs>
-        </svg>
-      );
+        {/* Dynamic Glowing cyan/teal water ripples for Pool/spa element */}
+        <path 
+          d="M24 45 C34 37, 44 53, 54 45 C64 37, 74 53, 84 45" 
+          stroke="#00E5FF" 
+          strokeWidth="2.5" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          opacity="0.85" 
+        />
+        {/* Main Golden Ripple curve */}
+        <path 
+          d="M19 54 C30 46, 41 62, 52 54 C63 46, 74 62, 85 54" 
+          stroke="url(#logoGoldGrad)" 
+          strokeWidth="3.5" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+        />
+        {/* Soft bottom water ripple (light white/dark navy depending on context) */}
+        <path 
+          d="M27 63 C35 57, 43 69, 51 63 C59 57, 67 69, 75 63" 
+          stroke={light ? "#ffffff" : "#0d1e3d"} 
+          strokeWidth="1.8" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          opacity="0.95"
+        />
+
+        {/* Floating droplets of relaxation / spa wellness */}
+        <circle cx="50" cy="30" r="3" fill="#ffffff" opacity="0.9" />
+        <circle cx="57" cy="26" r="1.8" fill="#00E5FF" opacity="0.8" />
+        <circle cx="43" cy="27" r="1.2" fill="url(#logoGoldGrad)" opacity="0.85" />
+
+        <defs>
+          <linearGradient id="logoGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f7e1a3" />
+            <stop offset="55%" stopColor="#c8922a" />
+            <stop offset="100%" stopColor="#8d5f12" />
+          </linearGradient>
+        </defs>
+      </svg>
+    );
+  };
+
+  const LogoImage = () => {
+    if (imageError) {
+      return <DefaultSymbol />;
     }
 
     return (
-      <img 
-        src="https://h5g5-fm.hstgr.io/ad9db43cbed30622/files/public_html/www.svg"
-        alt="Africa Pool & Spa Logo"
-        className="h-11 w-auto object-contain flex-shrink-0 bg-transparent transition-opacity duration-300"
+      <img
+        src={logoUrl}
+        alt="Africa Pool &amp; Spa Expo"
+        className="h-12 w-auto object-contain max-w-[280px]"
         referrerPolicy="no-referrer"
-        onError={() => setImgFailed(true)}
+        onError={() => setImageError(true)}
       />
     );
   };
 
+  // With text elements removed, all variants show the clean logo graphic image directly
   if (variant === 'symbol') {
-    return <Symbol />;
+    return <LogoImage />;
   }
 
-  if (variant === 'vertical') {
-    return (
-      <div className={`flex flex-col items-center text-center gap-3 ${className}`} id="logo-branding-vertical">
-        <Symbol />
-        {imgFailed && (
-          <div className="flex flex-col select-none font-sans">
-            <span className="text-[11px] text-gold tracking-[0.35em] font-extrabold uppercase leading-none">
-              AFRICA POOL &amp; SPA
-            </span>
-            <div className={`font-serif ${primaryColor} font-black text-3xl leading-tight flex items-center justify-center gap-2 pt-1`}>
-              <span>EXPO</span> 
-              <span className="text-gold font-sans font-extrabold">2026</span>
-            </div>
-            <div className="h-[1px] w-12 bg-gold/50 my-2 mx-auto" />
-            <span className={`text-[9px] ${subtitleColor} uppercase tracking-[0.2em] font-medium leading-none`}>
-              OFEC Casablanca • Maroc
-            </span>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Default: Horizontal Logo (Perfect for navbars)
   return (
-    <div className={`flex items-center gap-3.5 select-none ${className}`} id="logo-branding-horizontal">
-      <Symbol />
+    <div className={`flex items-center select-none ${className}`} id="logo-branding-horizontal">
+      <LogoImage />
     </div>
   );
 };

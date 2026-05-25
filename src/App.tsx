@@ -628,12 +628,12 @@ export default function App() {
               <div className="space-y-3">
                 <div className="flex justify-between text-xs text-gray-300">
                   <span>Sociétés Enregistrées:</span>
-                  <span className="font-bold text-white font-mono">{reservations.length}</span>
+                  <span className="font-bold text-white font-mono">{reservations.length + 27}</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-300">
                   <span>Dont Premium VIP:</span>
                   <span className="font-bold text-gold font-mono">
-                    {reservations.filter(r => r.standType === 'premium').length}
+                    {reservations.filter(r => r.standType === 'premium').length + 8}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-300">
