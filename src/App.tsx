@@ -219,8 +219,19 @@ export default function App() {
         });
         fetchMessages(); // refresh listing in admin backend
       } else {
-        const err = await res.json();
-        throw new Error(err.error || 'Erreur lors de l’envoi.');
+        let errMsg = 'Erreur lors de l’envoi.';
+        try {
+          const errData = await res.json();
+          errMsg = errData.error || errMsg;
+        } catch {
+          try {
+            const rawText = await res.text();
+            if (rawText && rawText.length < 200) {
+              errMsg = rawText;
+            }
+          } catch {}
+        }
+        throw new Error(errMsg);
       }
     } catch (err: any) {
       setContactResultMsg({ type: 'error', text: err.message || 'Impossible de transmettre le formulaire.' });
