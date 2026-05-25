@@ -150,34 +150,11 @@ const writeJsonDb = (db: DatabaseSchema) => {
 let prisma: PrismaClient | null = null;
 let usePrisma = false;
 
-// Prioritize fully qualified pool/non-pool connections over the localized container/kubernetes DATABASE_URL
-const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
+const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL;
 const isPlaceholder = !dbUrl || dbUrl.includes('xxx') || dbUrl.includes('placeholder');
-
-// Helper to gracefully detect Prisma connection/init errors and failover to local JSON database
-function handlePrismaError(err: any, operationName: string) {
-  console.error(`❌ Prisma operation failed in ${operationName}:`, err);
-  if (err && (
-    String(err).includes('PrismaClient') ||
-    String(err).includes('Can\'t reach database') ||
-    String(err).includes('Initialization') ||
-    String(err).includes('Invalid database URL') ||
-    String(err).includes('P1001') ||
-    String(err).includes('P1012') ||
-    String(err).includes('P2002') ||
-    String(err).includes('socket')
-  )) {
-    console.warn(`⚠️ Connection or initialization alert detected during Prisma ${operationName}. Swapped to JSON Local Fallback mode (usePrisma = false).`);
-    usePrisma = false;
-  }
-}
 
 if (dbUrl && !isPlaceholder) {
   try {
-    // Force set environment variables required by schema.prisma so Prisma doesn't throw at initialization
-    process.env.POSTGRES_PRISMA_URL = dbUrl;
-    process.env.DATABASE_URL = dbUrl;
-
     prisma = new PrismaClient({
       datasources: {
         db: {
@@ -291,7 +268,7 @@ export async function setupDatabase(): Promise<boolean> {
     console.log("✨ database fully preloaded and synchronized using Prisma v5.");
     return true;
   } catch (err) {
-    handlePrismaError(err, 'setupDatabase');
+    console.error("❌ Prisma database synchronization failed:", err);
     return false;
   }
 }
@@ -312,7 +289,7 @@ export async function getExhibitors(): Promise<Exhibitor[]> {
         logoColor: item.logoColor || undefined,
       }));
     } catch (err) {
-      handlePrismaError(err, 'getExhibitors');
+      console.error("Prisma lookup failed for exhibitors, falling back.", err);
     }
   }
   return readJsonDb().exhibitors;
@@ -336,7 +313,7 @@ export async function addExhibitor(exhibitor: Exhibitor): Promise<Exhibitor> {
         logoColor: saved.logoColor || undefined,
       };
     } catch (err) {
-      handlePrismaError(err, 'addExhibitor');
+      console.error("Prisma create failed for exhibitor, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -353,7 +330,7 @@ export async function deleteExhibitor(id: string): Promise<boolean> {
       });
       return !!deleted;
     } catch (err) {
-      handlePrismaError(err, 'deleteExhibitor');
+      console.error("Prisma delete failed for exhibitor, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -386,7 +363,7 @@ export async function getReservations(): Promise<StandReservation[]> {
         assignedLocation: item.assignedLocation || undefined,
       }));
     } catch (err) {
-      handlePrismaError(err, 'getReservations');
+      console.error("Prisma query failed for reservations, falling back.", err);
     }
   }
   return readJsonDb().reservations;
@@ -426,7 +403,7 @@ export async function addReservation(reservation: StandReservation): Promise<Sta
         assignedLocation: saved.assignedLocation || undefined,
       };
     } catch (err) {
-      handlePrismaError(err, 'addReservation');
+      console.error("Prisma create failed for reservation, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -471,7 +448,7 @@ export async function updateReservation(id: string, updates: Partial<StandReserv
         assignedLocation: saved.assignedLocation || undefined,
       };
     } catch (err) {
-      handlePrismaError(err, 'updateReservation');
+      console.error("Prisma update failed for reservation, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -492,7 +469,7 @@ export async function deleteReservation(id: string): Promise<boolean> {
       });
       return !!deleted;
     } catch (err) {
-      handlePrismaError(err, 'deleteReservation');
+      console.error("Prisma delete failed for reservation, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -523,7 +500,7 @@ export async function getTickets(): Promise<VisitorTicket[]> {
         ticketNumber: item.ticketNumber,
       }));
     } catch (err) {
-      handlePrismaError(err, 'getTickets');
+      console.error("Prisma query failed for tickets, falling back.", err);
     }
   }
   return readJsonDb().tickets;
@@ -559,7 +536,7 @@ export async function addTicket(ticket: VisitorTicket): Promise<VisitorTicket> {
         ticketNumber: saved.ticketNumber,
       };
     } catch (err) {
-      handlePrismaError(err, 'addTicket');
+      console.error("Prisma create failed for ticket, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -587,7 +564,7 @@ export async function getMessages(): Promise<ContactMessage[]> {
         read: item.read,
       }));
     } catch (err) {
-      handlePrismaError(err, 'getMessages');
+      console.error("Prisma query failed for messages, falling back.", err);
     }
   }
   return readJsonDb().messages;
@@ -619,7 +596,7 @@ export async function addMessage(message: ContactMessage): Promise<ContactMessag
         read: saved.read,
       };
     } catch (err) {
-      handlePrismaError(err, 'addMessage');
+      console.error("Prisma create failed for message, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -646,7 +623,7 @@ export async function markMessageRead(id: string): Promise<ContactMessage | null
         read: saved.read,
       };
     } catch (err) {
-      handlePrismaError(err, 'markMessageRead');
+      console.error("Prisma update failed for read-message status, falling back.", err);
     }
   }
   const db = readJsonDb();
@@ -665,7 +642,7 @@ export async function deleteMessage(id: string): Promise<boolean> {
       });
       return !!deleted;
     } catch (err) {
-      handlePrismaError(err, 'deleteMessage');
+      console.error("Prisma delete failed for message, falling back.", err);
     }
   }
   const db = readJsonDb();

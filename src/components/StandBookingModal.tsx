@@ -88,19 +88,8 @@ export default function StandBookingModal({ isOpen, onClose, onSuccess }: StandB
       });
 
       if (!resp.ok) {
-        let errMsg = 'Erreur lors de la réservation.';
-        try {
-          const errData = await resp.json();
-          errMsg = errData.error || errMsg;
-        } catch {
-          try {
-            const rawText = await resp.text();
-            if (rawText && rawText.length < 200) {
-              errMsg = rawText;
-            }
-          } catch {}
-        }
-        throw new Error(errMsg);
+        const errData = await resp.json();
+        throw new Error(errData.error || 'Erreur lors de la réservation.');
       }
 
       const newResObj = await resp.json();

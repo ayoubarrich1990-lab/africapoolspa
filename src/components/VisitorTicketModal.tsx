@@ -55,19 +55,8 @@ export default function VisitorTicketModal({ isOpen, onClose, onSuccess }: Visit
       });
 
       if (!resp.ok) {
-        let errMsg = 'Erreur lors de la création de l’accréditation.';
-        try {
-          const errData = await resp.json();
-          errMsg = errData.error || errMsg;
-        } catch {
-          try {
-            const rawText = await resp.text();
-            if (rawText && rawText.length < 200) {
-              errMsg = rawText;
-            }
-          } catch {}
-        }
-        throw new Error(errMsg);
+        const errData = await resp.json();
+        throw new Error(errData.error || 'Erreur lors de la création de l’accréditation.');
       }
 
       const ticketObj = await resp.json();
