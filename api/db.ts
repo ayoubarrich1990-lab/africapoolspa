@@ -151,7 +151,7 @@ let prisma: PrismaClient | null = null;
 let usePrisma = false;
 
 // Prioritize fully qualified pool/non-pool connections over the localized container/kubernetes DATABASE_URL
-const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
+const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.af_DATABASE_URL;
 const isPlaceholder = !dbUrl || dbUrl.includes('xxx') || dbUrl.includes('placeholder');
 
 // Helper to gracefully detect Prisma connection/init errors and failover to local JSON database
@@ -683,7 +683,7 @@ export async function getDbStatus() {
   let maskedUrl = '';
   
   // Standard Prisma check
-  const connectionString = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || '';
+  const connectionString = process.env.POSTGRES_PRISMA_URL || process.env.DATABASE_URL || process.env.af_DATABASE_URL || '';
   isPlaceholderEnv = !connectionString || connectionString.includes('xxx') || connectionString.includes('placeholder');
   
   if (usePrisma && prisma) {
