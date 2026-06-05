@@ -151,7 +151,15 @@ let prisma: PrismaClient | null = null;
 let usePrisma = false;
 
 // Prioritize fully qualified pool/non-pool connections over the localized container/kubernetes DATABASE_URL
-const dbUrl = process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.af_DATABASE_URL;
+const rawDbUrl = (process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.af_DATABASE_URL || '').trim();
+
+// Auto-expand raw API Key / token into a fully qualified PostgreSQL URI if they just passed the plain token
+let dbUrl = rawDbUrl;
+if (rawDbUrl && !rawDbUrl.startsWith('postgres://') && !rawDbUrl.startsWith('postgresql://') && !rawDbUrl.startsWith('prisma://')) {
+  // If it's a token like sk_... or AQ...., we wrap it in the connection URI on db.prisma.io
+  dbUrl = `postgres://46828d3027a0a5c8cf06b33b26d6874e3e19dbbbbcc820483da9ec659b5f56f8:${rawDbUrl}@db.prisma.io:5432/postgres?sslmode=require`;
+}
+
 const isPlaceholder = !dbUrl || dbUrl.includes('xxx') || dbUrl.includes('placeholder');
 
 // Helper to gracefully detect Prisma connection/init errors and failover to local JSON database
