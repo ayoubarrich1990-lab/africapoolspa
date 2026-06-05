@@ -566,9 +566,9 @@ export default function App() {
         <div className="absolute inset-0 z-0 bg-cover bg-center opacity-25" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=1600&auto=format&fit=crop')" }} />
         <div className="absolute inset-0 bg-gradient-to-tr from-[#050f22] via-[#0a1f44]/98 to-[#0a1f44]/60 z-0" />
         
-        <div className="container mx-auto px-6 lg:px-12 relative z-10 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="container mx-auto px-6 lg:px-12 relative z-10 w-full flex flex-col items-center justify-center py-12 text-center">
           
-          <div className="lg:col-span-7 space-y-6 text-left" id="hero-left-col">
+          <div className="max-w-4xl space-y-6 text-center flex flex-col items-center" id="hero-left-col">
             <span className="inline-block px-3 py-1 bg-gold/10 border border-gold/40 text-gold text-[10px] font-bold tracking-widest uppercase rounded">
               💎 Édition Spéciale — Leadership &amp; Innovation
             </span>
@@ -579,22 +579,22 @@ export default function App() {
               EXPO <span className="text-gold">2026</span>
             </h1>
 
-            <p className="text-gray-300 text-sm sm:text-base md:text-lg max-w-xl leading-relaxed font-sans">
+            <p className="text-gray-300 text-sm sm:text-base md:text-lg max-w-xl leading-relaxed font-sans mx-auto">
               Le rendez-vous unique des infrastructures aquatiques, de la domotique et du bien-être pour l'industrie hôtelière et touristique en pleine expansion sur le continent africain.
             </p>
 
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center gap-3 text-white text-sm sm:text-base">
+            <div className="space-y-3 pt-2 text-center">
+              <div className="flex items-center gap-3 text-white text-sm sm:text-base justify-center">
                 <Calendar className="h-5 w-5 text-gold flex-shrink-0" />
                 <span><strong>20 au 22 Octobre 2026</strong> — Sessions professionnelles B2B</span>
               </div>
-              <div className="flex items-center gap-3 text-white text-sm sm:text-base">
+              <div className="flex items-center gap-3 text-white text-sm sm:text-base justify-center">
                 <MapPin className="h-5 w-5 text-gold flex-shrink-0" />
                 <span><strong>OFEC</strong> — Office des Foires et Expositions de Casablanca, Maroc</span>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center">
               <button
                 id="btn-main-reserve-stand"
                 onClick={() => setIsStandModalOpen(true)}
@@ -609,71 +609,6 @@ export default function App() {
               >
                 <span>Obtenir mon e-Badge Gratuit</span>
               </button>
-            </div>
-          </div>
-
-          {/* Quick interactive floor card summary */}
-          <div className="lg:col-span-5 relative" id="hero-right-col">
-            <div className="bg-[#050f22]/85 backdrop-blur-md rounded-xl p-6 border border-gold/30 hover:border-gold/60 transition-colors shadow-2xl text-left space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <span className="font-serif text-sm font-bold text-white flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Statut du Plan de Stand (LIVE)
-                </span>
-                <span className="text-[10px] font-mono font-bold bg-gold/15 text-gold px-2.5 py-1 rounded">
-                  OFEC Hall Principal
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs text-gray-300">
-                  <span>Sociétés Enregistrées:</span>
-                  <span className="font-bold text-white font-mono">{reservations.length + 27}</span>
-                </div>
-                <div className="flex justify-between text-xs text-gray-300">
-                  <span>Dont Premium VIP:</span>
-                  <span className="font-bold text-gold font-mono">
-                    {reservations.filter(r => r.standType === 'premium').length + 8}
-                  </span>
-                </div>
-                <div className="flex justify-between text-xs text-gray-300">
-                  <span>Visiteurs Professionnels Accrédités:</span>
-                  <span className="font-bold text-emerald-400 font-mono">{tickets.length}</span>
-                </div>
-                <div className="flex justify-between text-xs text-gray-300">
-                  <span>En attente de validation commerciale:</span>
-                  <span className="font-bold text-amber-400 font-mono">
-                    {reservations.filter(r => r.status === 'pending').length}
-                  </span>
-                </div>
-              </div>
-
-              {isAdminAuthenticated ? (
-                <>
-                  <div className="bg-light/5 p-3.5 rounded border border-white/5 space-y-1.5 text-xs text-gray-400 font-sans">
-                    <span className="font-bold font-sans text-white text-[10px] uppercase block tracking-wider">Note Organisateur :</span>
-                    <p className="leading-relaxed">
-                      Utilisez la Console Admin (en haut à droite) pour simuler la validation commerciale, attribuer des numéros physiques de stands ou inspecter les participants.
-                    </p>
-                  </div>
-
-                  <div className="pt-2 font-sans">
-                    <button
-                      onClick={() => setIsAdminPanelOpen(true)}
-                      className="w-full py-2.5 bg-navy border border-gold/30 text-gold text-xs font-bold uppercase tracking-wider rounded hover:bg-gold hover:text-navy hover:border-gold transition-all text-center block font-sans"
-                    >
-                      Ouvrir le Backoffice de Gestion →
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="bg-light/5 p-3.5 rounded border border-white/5 space-y-1.5 text-xs text-gray-400 font-sans">
-                  <span className="font-bold font-sans text-gold text-[10px] uppercase block tracking-wider">Information de Réservation :</span>
-                  <p className="leading-relaxed">
-                    Les attributions d'emplacements et de stands physiques dans le hall du salon de l'OFEC sont mises à jour régulièrement après validation par le comité directeur.
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
