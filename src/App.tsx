@@ -37,6 +37,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import StandBookingModal from './components/StandBookingModal';
 import VisitorTicketModal from './components/VisitorTicketModal';
 import Logo from './components/Logo';
+import { AIChatAssistant } from './components/AIChatAssistant';
 import type { Exhibitor, StandReservation, VisitorTicket, ContactMessage } from './types';
 
 export default function App() {
@@ -1880,6 +1881,9 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Floating AI Chat Assistant */}
+      <AIChatAssistant />
 
     </div>
   );

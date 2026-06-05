@@ -272,4 +272,93 @@ app.get('/api/db-status', async (req, res) => {
   }
 });
 
+// 6. GEMINI CO-PILOT APIS
+import { GoogleGenAI } from '@google/genai';
+
+let geminiClient: GoogleGenAI | null = null;
+function getGeminiClient(): GoogleGenAI {
+  if (!geminiClient) {
+    // API key is securely retrieved from the system environment/secrets
+    const apiKey = process.env.GEMINI_API_KEY || 'AIzaSyDT8YL0ZHKB3WdysgxuzHas4ar91V8N0Xk';
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY is not defined.');
+    }
+    geminiClient = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        }
+      }
+    });
+  }
+  return geminiClient;
+}
+
+const EXPO_SYSTEM_INSTRUCTION = `
+You are the official AI Assistant for the Africa Pool & Spa Expo 2026.
+Your role is to answer B2B visitors, delegates, Exhibitors, and partners warmly, professionally, and precisely.
+
+Key Expo Information:
+- Concept: One-stop salon for wellness, swimming pools, aquatic amenities, home automation (domotic spa), water treatment, and luxury thermal accessories. Highly aimed at hotel development, builders, and architectures across the African continent.
+- Edition: 2026 Special Edition.
+- Dates: October 20th to 22nd, 2026.
+- Venue: OFEC (Office des Foires et Expositions de Casablanca), Casablanca, Morocco.
+- Official Web Address: https://africapoolspa.vercel.app (and https://africapoolspa.com).
+- Direct Contact Phone Numbers: +212 5 22 30 59 55 or Mobile/WhatsApp: +212 661 482 497
+- Direct Contact E-mail: contact@africapoolspa.com
+
+Behavior Rules:
+1. Speak beautifully in French, English, or Arabic depending on how the user greets you. Default to French.
+2. Be brief, respectful, and professional.
+3. Suggest the user register for a visitor badge or fill in the "Réserver un Stand" form if they want to participate.
+4. Promote the main website domain (https://africapoolspa.vercel.app) as the online destination for registrations and follow-ups.
+`;
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, history } = req.body;
+    if (!message) {
+      res.status(400).json({ error: 'Message field is required.' });
+      return;
+    }
+
+    const ai = getGeminiClient();
+    
+    // Construct contents array with context and chat history
+    let contents: any[] = [];
+    
+    if (Array.isArray(history)) {
+      contents = history.map((item: any) => ({
+        role: item.role === 'model' || item.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: item.text || item.content || '' }]
+      }));
+    }
+    
+    // Append the latest user message
+    contents.push({
+      role: 'user',
+      parts: [{ text: message }]
+    });
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash',
+      contents,
+      config: {
+        systemInstruction: EXPO_SYSTEM_INSTRUCTION,
+        temperature: 0.7,
+      }
+    });
+
+    const text = response.text || 'Désolé, je n’ai pas pu formuler de réponse pour le moment.';
+    res.json({ text });
+  } catch (err: any) {
+    console.error('Error in /api/chat:', err);
+    res.status(500).json({ 
+      error: 'Erreur de communication avec le module IA.',
+      details: err.message || String(err)
+    });
+  }
+});
+
 export default app;
