@@ -38,6 +38,7 @@ import StandBookingModal from './components/StandBookingModal';
 import VisitorTicketModal from './components/VisitorTicketModal';
 import Logo from './components/Logo';
 import { AIChatAssistant } from './components/AIChatAssistant';
+import poolExpoBg from './assets/images/pool_expo_bg_1780934724088.png';
 import type { Exhibitor, StandReservation, VisitorTicket, ContactMessage } from './types';
 
 export default function App() {
@@ -564,7 +565,7 @@ export default function App() {
 
       {/* ===== HERO SECTION ===== */}
       <section className="min-h-screen relative bg-navy flex items-center pt-24 pb-12 overflow-hidden" id="hero">
-        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-25" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=1600&auto=format&fit=crop')" }} />
+        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-50" style={{ backgroundImage: `url(${poolExpoBg})` }} />
         <div className="absolute inset-0 bg-gradient-to-tr from-[#050f22] via-[#0a1f44]/98 to-[#0a1f44]/60 z-0" />
         
         <div className="container mx-auto px-6 lg:px-12 relative z-10 w-full flex flex-col items-center justify-center py-12 text-center">
