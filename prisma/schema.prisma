@@ -12,6 +12,7 @@ model Exhibitor {
   name          String
   highlightWord String? @map("highlight_word")
   logoColor     String? @map("logo_color")
+  logoUrl       String? @map("logo_url")
 
   @@map("exhibitors")
 }

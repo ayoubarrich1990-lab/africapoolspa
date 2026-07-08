@@ -24,9 +24,16 @@ const app = express();
 app.use(express.json());
 
 // Boot-up database synchronization
-setupDatabase().catch((e) => {
-  console.error('Failed to trigger background database setup:', e);
-});
+// Optimize for Serverless (Vercel): skip background seeding during startup to prevent cold-start timeouts and connection pooling issues
+const isVercelEnvironment = process.env.VERCEL === '1' || !!process.env.NOW_REGION;
+if (!isVercelEnvironment) {
+  console.log("⚡ Initiating database check/seed in non-Vercel environment...");
+  setupDatabase().catch((e) => {
+    console.error('Failed to trigger background database setup:', e);
+  });
+} else {
+  console.log("⚡ Vercel environment detected. Skipping background database setup at startup to prevent timeout and pool exhaustion.");
+}
 
 // ================= API ENDPOINTS =================
 
@@ -42,7 +49,7 @@ app.get('/api/exhibitors', async (req, res) => {
 
 app.post('/api/exhibitors', async (req, res) => {
   try {
-    const { name, highlightWord, logoColor } = req.body;
+    const { name, highlightWord, logoColor, logoUrl } = req.body;
     if (!name) {
       res.status(400).json({ error: 'Le nom de l’exposant est obligatoire.' });
       return;
@@ -53,6 +60,7 @@ app.post('/api/exhibitors', async (req, res) => {
       name,
       highlightWord: highlightWord || name.split(' ')[0],
       logoColor: logoColor || '#c8922a',
+      logoUrl: logoUrl || undefined,
     };
 
     const saved = await addExhibitor(newExhibitor);
@@ -166,9 +174,11 @@ app.get('/api/tickets', async (req, res) => {
 
 app.post('/api/tickets', async (req, res) => {
   try {
+    console.log("📥 [POST /api/tickets] Received accreditation request:", req.body);
     const { firstName, lastName, company, jobTitle, email, phone, sectorInterest } = req.body;
 
     if (!firstName || !lastName || !company || !email || !phone) {
+      console.error("❌ [POST /api/tickets] Missing mandatory fields:", { firstName, lastName, company, email, phone });
       res.status(400).json({ error: 'Veuillez saisir toutes les informations du visiteur.' });
       return;
     }
@@ -176,6 +186,7 @@ app.post('/api/tickets', async (req, res) => {
     // Generate unique randomized Ticket number
     const uniqueNum = Math.floor(10000 + Math.random() * 90000);
     const ticketNumber = `APS-2026-${uniqueNum}`;
+    console.log(`🎫 [POST /api/tickets] Generated ticket number: ${ticketNumber}`);
 
     const newTicket: VisitorTicket = {
       id: `tkt-${Date.now()}`,
@@ -190,10 +201,17 @@ app.post('/api/tickets', async (req, res) => {
       ticketNumber,
     };
 
+    console.log("⏳ [POST /api/tickets] Invoking addTicket...");
     const saved = await addTicket(newTicket);
+    console.log("✅ [POST /api/tickets] Ticket successfully returned from addTicket:", saved);
     res.status(201).json(saved);
-  } catch (err) {
-    res.status(500).json({ error: 'Erreur serveur lors de la création de la demande de badge.' });
+  } catch (err: any) {
+    console.error("❌ [POST /api/tickets] Fatal error caught in Express route handler:", err);
+    res.status(500).json({ 
+      error: 'Erreur serveur lors de la création de la demande de badge.',
+      details: err?.message || String(err),
+      stack: err?.stack
+    });
   }
 });
 

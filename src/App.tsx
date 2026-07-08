@@ -39,6 +39,14 @@ import VisitorTicketModal from './components/VisitorTicketModal';
 import Logo from './components/Logo';
 import { AIChatAssistant } from './components/AIChatAssistant';
 import poolExpoBg from './assets/images/pool_expo_bg_1780934724088.png';
+import logoSaya from './assets/images/regenerated_image_1781003477006.png';
+import logoFrio from './assets/images/regenerated_image_1781000604311.jpg';
+import logoPoolSpa from './assets/images/regenerated_image_1781003247380.png';
+import logoPaledo from './assets/images/regenerated_image_1781001514526.png';
+import logoCcei from './assets/images/regenerated_image_1781001515196.webp';
+import logoNwg from './assets/images/regenerated_image_1781001515827.png';
+import logoAtlanta from './assets/images/regenerated_image_1781003246792.webp';
+import logoVerso from './assets/images/regenerated_image_1781001516746.png';
 import type { Exhibitor, StandReservation, VisitorTicket, ContactMessage } from './types';
 
 export default function App() {
@@ -47,6 +55,36 @@ export default function App() {
   const [reservations, setReservations] = useState<StandReservation[]>([]);
   const [tickets, setTickets] = useState<VisitorTicket[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
+
+  // Helper to obtain local optimized logos or use specific image assets
+  const getExhibitorLogoUrl = (ex: Exhibitor): string | undefined => {
+    const nameLower = ex.name?.toLowerCase() || '';
+    if (ex.id === 'ex-1' || nameLower.includes('saya')) {
+      return logoSaya;
+    }
+    if (ex.id === 'ex-2' || nameLower.includes('frio')) {
+      return logoFrio;
+    }
+    if (ex.id === 'ex-3' || nameLower.includes('poolspa') || nameLower.includes('spa')) {
+      return logoPoolSpa;
+    }
+    if (ex.id === 'ex-4' || nameLower.includes('paledo')) {
+      return logoPaledo;
+    }
+    if (ex.id === 'ex-5' || nameLower.includes('ccei')) {
+      return logoCcei;
+    }
+    if (ex.id === 'ex-6' || nameLower.includes('nwg')) {
+      return logoNwg;
+    }
+    if (ex.id === 'ex-7' || nameLower.includes('atlanta')) {
+      return logoAtlanta;
+    }
+    if (nameLower.includes('verso') || nameLower.includes('versô')) {
+      return logoVerso;
+    }
+    return ex.logoUrl;
+  };
 
   // Modals & Dashboard view triggers
   const [isStandModalOpen, setIsStandModalOpen] = useState(false);
@@ -98,7 +136,7 @@ export default function App() {
   // Admin Dashboard States
   const [adminTab, setAdminTab] = useState<'stands' | 'visitors' | 'messages' | 'exhibitors'>('stands');
   const [adminSearch, setAdminSearch] = useState('');
-  const [newExhibitorForm, setNewExhibitorForm] = useState({ name: '', highlightWord: '', logoColor: '#c8922a' });
+  const [newExhibitorForm, setNewExhibitorForm] = useState({ name: '', highlightWord: '', logoColor: '#c8922a', logoUrl: '' });
   const [isAddingExhibitor, setIsAddingExhibitor] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -347,7 +385,7 @@ export default function App() {
       });
 
       if (res.ok) {
-        setNewExhibitorForm({ name: '', highlightWord: '', logoColor: '#c8922a' });
+        setNewExhibitorForm({ name: '', highlightWord: '', logoColor: '#c8922a', logoUrl: '' });
         fetchExhibitors();
       }
     } catch (err) {
@@ -884,8 +922,19 @@ export default function App() {
                   whileHover={{ y: -3 }}
                   className="bg-white p-5 rounded-lg border border-gray-200/80 shadow-sm text-center flex flex-col justify-between min-h-[140px]"
                 >
-                  <div className="w-10 h-10 rounded-full mx-auto flex items-center justify-center font-bold text-sm text-navy mb-3" style={{ backgroundColor: ex.logoColor || '#e2e8f0' }}>
-                    {ex.highlightWord ? ex.highlightWord.charAt(0).toUpperCase() : ex.name.charAt(0)}
+                  <div className="w-full h-16 mb-3 rounded-lg overflow-hidden bg-slate-50 flex items-center justify-center border border-gray-100 p-1">
+                    {getExhibitorLogoUrl(ex) ? (
+                      <img 
+                        src={getExhibitorLogoUrl(ex)} 
+                        alt={`${ex.name} Logo`} 
+                        className="max-w-full max-h-full object-contain rounded-md"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm text-white shadow-sm" style={{ backgroundColor: ex.logoColor || '#cbd5e1' }}>
+                        {ex.highlightWord ? ex.highlightWord.charAt(0).toUpperCase() : ex.name.charAt(0)}
+                      </div>
+                    )}
                   </div>
                   
                   <div>
@@ -1833,15 +1882,26 @@ export default function App() {
                           </div>
                         </div>
 
-                        <div className="flex items-end justify-end">
-                          <button
-                            type="submit"
-                            disabled={isAddingExhibitor}
-                            className="px-5 py-2 bg-gold text-navy font-black text-xs uppercase tracking-wider rounded hover:bg-gold-light hover:shadow transition-all disabled:opacity-50"
-                          >
-                            {isAddingExhibitor ? 'Insertion...' : 'Enregistrer Exposant'}
-                          </button>
+                        <div>
+                          <label className="block text-gray-400 mb-1">URL de l'image du Logo (Optionnel)</label>
+                          <input 
+                            type="url"
+                            placeholder="https://images.unsplash.com/... ou URL d'image"
+                            className="w-full bg-navy border border-gray-700 rounded px-2.5 py-2 text-white text-xs focus:outline-none focus:border-gold font-mono"
+                            value={newExhibitorForm.logoUrl}
+                            onChange={(e) => setNewExhibitorForm({ ...newExhibitorForm, logoUrl: e.target.value })}
+                          />
                         </div>
+                      </div>
+
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="submit"
+                          disabled={isAddingExhibitor}
+                          className="px-5 py-2 bg-gold text-navy font-black text-xs uppercase tracking-wider rounded hover:bg-gold-light hover:shadow transition-all disabled:opacity-50"
+                        >
+                          {isAddingExhibitor ? 'Insertion...' : 'Enregistrer Exposant'}
+                        </button>
                       </div>
                     </form>
 
@@ -1854,7 +1914,16 @@ export default function App() {
                         {exhibitors.map((ex) => (
                           <div key={ex.id} className="bg-[#050f22]/50 border border-gray-800 rounded p-2.5 flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full block" style={{ backgroundColor: ex.logoColor || '#c8922a' }} />
+                              {getExhibitorLogoUrl(ex) ? (
+                                <img 
+                                  src={getExhibitorLogoUrl(ex)} 
+                                  alt="Icon" 
+                                  className="w-6 h-6 rounded object-cover border border-gray-800"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <span className="w-2.5 h-2.5 rounded-full block" style={{ backgroundColor: ex.logoColor || '#c8922a' }} />
+                              )}
                               <span className="text-white font-sans font-bold">{ex.name}</span>
                             </div>
                             <button

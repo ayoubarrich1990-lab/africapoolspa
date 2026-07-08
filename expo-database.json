@@ -1,0 +1,155 @@
+{
+  "exhibitors": [
+    {
+      "id": "ex-1",
+      "name": "Saya Line",
+      "highlightWord": "Saya",
+      "logoColor": "#38bdf8",
+      "logoUrl": "/src/assets/images/regenerated_image_1781003477006.png"
+    },
+    {
+      "id": "ex-2",
+      "name": "Frio Équipement",
+      "highlightWord": "Frio",
+      "logoColor": "#60a5fa",
+      "logoUrl": "https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=200&auto=format&fit=crop"
+    },
+    {
+      "id": "ex-3",
+      "name": "PoolSPA",
+      "highlightWord": "SPA",
+      "logoColor": "#0ea5e9",
+      "logoUrl": "/src/assets/images/regenerated_image_1781003247380.png"
+    },
+    {
+      "id": "ex-4",
+      "name": "PALEDO",
+      "highlightWord": "PALEDO",
+      "logoColor": "#0284c7",
+      "logoUrl": "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?q=80&w=200&auto=format&fit=crop"
+    },
+    {
+      "id": "ex-5",
+      "name": "CCEI",
+      "highlightWord": "CCEI",
+      "logoColor": "#10b981",
+      "logoUrl": "https://images.unsplash.com/photo-1558449028-b53a39d100fc?q=80&w=200&auto=format&fit=crop"
+    },
+    {
+      "id": "ex-6",
+      "name": "NWG",
+      "highlightWord": "NWG",
+      "logoColor": "#14b8a6",
+      "logoUrl": "https://images.unsplash.com/photo-1527061011665-3652c757a4d4?q=80&w=200&auto=format&fit=crop"
+    },
+    {
+      "id": "ex-7",
+      "name": "First Water",
+      "highlightWord": "First",
+      "logoColor": "#0ea5e9",
+      "logoUrl": "/src/assets/images/regenerated_image_1781003246792.webp"
+    },
+    {
+      "id": "ex-8",
+      "name": "First Water",
+      "highlightWord": "First",
+      "logoColor": "#2563eb",
+      "logoUrl": "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=200&auto=format&fit=crop"
+    },
+    {
+      "id": "ex-9",
+      "name": "SWIN.LED",
+      "highlightWord": "SWIN.LED",
+      "logoColor": "#a855f7",
+      "logoUrl": "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?q=80&w=200&auto=format&fit=crop"
+    },
+    {
+      "id": "ex-10",
+      "name": "VERSÔ Signature",
+      "highlightWord": "VERSÔ",
+      "logoColor": "#0ea5e9",
+      "logoUrl": "/src/assets/images/regenerated_image_1781001516746.png"
+    }
+  ],
+  "reservations": [
+    {
+      "id": "res-1",
+      "companyName": "Saya Line Corp",
+      "contactName": "Ayoub Arrich",
+      "email": "ayoubarrich1990@gmail.com",
+      "phone": "+212 6 61 48 24 97",
+      "sector": "Pool Equipment",
+      "standSize": 36,
+      "standType": "premium",
+      "description": "Ligne prestigieuse de spas nordiques pour hôtels.",
+      "status": "approved",
+      "createdAt": "2026-05-18T10:11:00.000Z",
+      "assignedLocation": "Zone Excellence - Stand N°01"
+    },
+    {
+      "id": "res-2",
+      "companyName": "AquaTech Maroc",
+      "contactName": "Youssef El Mansouri",
+      "email": "contact@aquatech.ma",
+      "phone": "+212 5 22 45 12 36",
+      "sector": "Water Treatment",
+      "standSize": 18,
+      "standType": "standard",
+      "description": "Systèmes de filtration écologique par gravité.",
+      "status": "pending",
+      "createdAt": "2026-05-20T14:32:00.000Z"
+    },
+    {
+      "id": "res-3",
+      "companyName": "ThermaSpa Wellness",
+      "contactName": "Sophie Lebrun",
+      "email": "s.lebrun@thermaspa.fr",
+      "phone": "+33 6 12 34 56 78",
+      "sector": "Spa & Wellness",
+      "standSize": 54,
+      "standType": "premium",
+      "description": "Saunas panoramiques extérieurs à haute efficacité énergétique.",
+      "status": "approved",
+      "createdAt": "2026-05-15T09:00:00.000Z",
+      "assignedLocation": "Zone Wellness - Stand N°12"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "tkt-1",
+      "firstName": "Karim",
+      "lastName": "Bennani",
+      "company": "Mosaïque & Piscine Sarl",
+      "jobTitle": "Directeur Général",
+      "email": "karim.bennani@mosaicpool.ma",
+      "phone": "+212 6 55 99 88 77",
+      "sectorInterest": "Outdoor Living",
+      "createdAt": "2026-05-19T11:24:00.000Z",
+      "ticketNumber": "APS-2026-89410"
+    },
+    {
+      "id": "tkt-2",
+      "firstName": "Elena",
+      "lastName": "Rostova",
+      "company": "Atlas Resorts Luxury",
+      "jobTitle": "Responsable Approvisionnement",
+      "email": "e.rostova@atlasresorts.com",
+      "phone": "+212 6 10 20 30 40",
+      "sectorInterest": "Hospitality Solutions",
+      "createdAt": "2026-05-21T16:10:00.000Z",
+      "ticketNumber": "APS-2026-10523"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg-1",
+      "name": "Ahmed Alaoui",
+      "email": "ahmed.alaoui@gmail.com",
+      "phone": "+212 6 12 34 56 78",
+      "subject": "Demande de partenariat média de presse",
+      "message": "Bonjour, nous souhaitons couvrir l’événement Africa Pool & Spa Expo 2026 pour notre magazine spécialisé hôtellerie. Quels sont les formulaires d’accréditation ?",
+      "createdAt": "2026-05-19T15:44:00.000Z",
+      "read": false
+    }
+  ]
+}

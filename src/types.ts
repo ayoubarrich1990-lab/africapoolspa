@@ -3,6 +3,7 @@ export interface Exhibitor {
   name: string;
   highlightWord?: string; // Optional coloring like "Saya Line" or "Frio Équipement"
   logoColor?: string; // Hex color for logo icon
+  logoUrl?: string; // Optional custom image URL
 }
 
 export interface StandReservation {

@@ -22,15 +22,16 @@ interface DatabaseSchema {
 const getInitialDb = (): DatabaseSchema => {
   return {
     exhibitors: [
-      { id: 'ex-1', name: 'Saya Line', highlightWord: 'Saya' },
-      { id: 'ex-2', name: 'Frio Équipement', highlightWord: 'Frio' },
-      { id: 'ex-3', name: 'PoolSPA', highlightWord: 'SPA' },
-      { id: 'ex-4', name: 'PALEDO', highlightWord: 'PALEDO' },
-      { id: 'ex-5', name: 'CCEI', highlightWord: 'CCEI' },
-      { id: 'ex-6', name: 'NWG', highlightWord: 'NWG' },
-      { id: 'ex-7', name: 'Atlanta Pompe', highlightWord: 'Atlanta' },
-      { id: 'ex-8', name: 'First Water', highlightWord: 'First' },
-      { id: 'ex-9', name: 'SWIN.LED', highlightWord: 'SWIN.LED' },
+      { id: 'ex-1', name: 'ATLANTA POMPE', highlightWord: 'Saya', logoColor: '#38bdf8', logoUrl: '/src/assets/images/regenerated_image_1781003477006.png' },
+      { id: 'ex-2', name: 'Frio Équipement', highlightWord: 'Frio', logoColor: '#60a5fa', logoUrl: '/src/assets/images/regenerated_image_1781000604311.jpg' },
+      { id: 'ex-3', name: 'SAYA LINE', highlightWord: 'SPA', logoColor: '#0ea5e9', logoUrl: '/src/assets/images/regenerated_image_1781003247380.png' },
+      { id: 'ex-4', name: 'PALEDO', highlightWord: 'PALEDO', logoColor: '#0284c7', logoUrl: '/src/assets/images/regenerated_image_1781001514526.png' },
+      { id: 'ex-5', name: 'CCEI', highlightWord: 'CCEI', logoColor: '#10b981', logoUrl: '/src/assets/images/regenerated_image_1781001515196.webp' },
+      { id: 'ex-6', name: 'NWG', highlightWord: 'NWG', logoColor: '#14b8a6', logoUrl: '/src/assets/images/regenerated_image_1781001515827.png' },
+      { id: 'ex-7', name: 'POOLSPA', highlightWord: 'First', logoColor: '#0ea5e9', logoUrl: '/src/assets/images/regenerated_image_1781003246792.webp' },
+      { id: 'ex-8', name: 'First Water', highlightWord: 'First', logoColor: '#2563eb', logoUrl: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=200&auto=format&fit=crop' },
+      { id: 'ex-9', name: 'SWIN.LED', highlightWord: 'SWIN.LED', logoColor: '#a855f7', logoUrl: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?q=80&w=200&auto=format&fit=crop' },
+      { id: 'ex-10', name: 'VERSÔ Signature', highlightWord: 'VERSÔ', logoColor: '#0ea5e9', logoUrl: '/src/assets/images/regenerated_image_1781001516746.png' },
     ],
     reservations: [
       {
@@ -222,6 +223,7 @@ export async function setupDatabase(): Promise<boolean> {
             name: ex.name,
             highlightWord: ex.highlightWord || null,
             logoColor: ex.logoColor || null,
+            logoUrl: ex.logoUrl || null,
           },
         });
       }
@@ -296,6 +298,89 @@ export async function setupDatabase(): Promise<boolean> {
       }
     }
 
+    // 5. ENSURE EX-8 AND EX-10 COMPATIBILITY AND AUTO-UPDATE
+    if (usePrisma && prisma) {
+      try {
+        // Ensure ex-1 has the newly regenerated logo Url in backend
+        const ex1 = await prisma.exhibitor.findUnique({ where: { id: 'ex-1' } });
+        if (ex1 && ex1.logoUrl !== '/src/assets/images/regenerated_image_1781003477006.png') {
+          await prisma.exhibitor.update({
+            where: { id: 'ex-1' },
+            data: {
+              logoUrl: '/src/assets/images/regenerated_image_1781003477006.png'
+            }
+          });
+          console.log("🔄 Updated ex-1 (Saya Line) logoUrl in Postgres database.");
+        }
+        // Ensure ex-3 has the newly regenerated logo Url in backend
+        const ex3 = await prisma.exhibitor.findUnique({ where: { id: 'ex-3' } });
+        if (ex3 && ex3.logoUrl !== '/src/assets/images/regenerated_image_1781003247380.png') {
+          await prisma.exhibitor.update({
+            where: { id: 'ex-3' },
+            data: {
+              logoUrl: '/src/assets/images/regenerated_image_1781003247380.png'
+            }
+          });
+          console.log("🔄 Updated ex-3 (PoolSPA) logoUrl in Postgres database.");
+        }
+
+        // Ensure ex-7 has the newly regenerated logo Url and name in backend
+        const ex7 = await prisma.exhibitor.findUnique({ where: { id: 'ex-7' } });
+        if (ex7 && (ex7.logoUrl !== '/src/assets/images/regenerated_image_1781003246792.webp' || ex7.name !== 'First Water' || ex7.highlightWord !== 'First')) {
+          await prisma.exhibitor.update({
+            where: { id: 'ex-7' },
+            data: {
+              name: 'First Water',
+              highlightWord: 'First',
+              logoUrl: '/src/assets/images/regenerated_image_1781003246792.webp'
+            }
+          });
+          console.log("🔄 Updated ex-7 (First Water) logo and name in Postgres database.");
+        }
+
+        // Restore ex-8 to First Water
+        const ex8 = await prisma.exhibitor.findUnique({ where: { id: 'ex-8' } });
+        if (ex8 && ex8.name !== 'First Water') {
+          await prisma.exhibitor.update({
+            where: { id: 'ex-8' },
+            data: {
+              name: 'First Water',
+              highlightWord: 'First',
+              logoUrl: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=200&auto=format&fit=crop',
+            },
+          });
+          console.log("🔄 Restored ex-8 to 'First Water' inside PostgreSQL database.");
+        }
+
+        // Add or ensure ex-10 for VERSÔ Signature
+        const ex10 = await prisma.exhibitor.findUnique({ where: { id: 'ex-10' } });
+        if (!ex10) {
+          await prisma.exhibitor.create({
+            data: {
+              id: 'ex-10',
+              name: 'VERSÔ Signature',
+              highlightWord: 'VERSÔ',
+              logoColor: '#0ea5e9',
+              logoUrl: '/src/assets/images/regenerated_image_1781001516746.png',
+            },
+          });
+          console.log("✨ Added ex-10 'VERSÔ Signature' to PostgreSQL database.");
+        } else if (ex10.name !== 'VERSÔ Signature') {
+          await prisma.exhibitor.update({
+            where: { id: 'ex-10' },
+            data: {
+              name: 'VERSÔ Signature',
+              highlightWord: 'VERSÔ',
+              logoColor: '#0ea5e9',
+              logoUrl: '/src/assets/images/regenerated_image_1781001516746.png',
+            },
+          });
+        }
+      } catch (dbErr) {
+        console.warn("Could not auto-verify/update exhibitors in Postgres:", dbErr);
+      }
+    }
+
     console.log("✨ database fully preloaded and synchronized using Prisma v5.");
     return true;
   } catch (err) {
@@ -318,6 +403,7 @@ export async function getExhibitors(): Promise<Exhibitor[]> {
         name: item.name,
         highlightWord: item.highlightWord || undefined,
         logoColor: item.logoColor || undefined,
+        logoUrl: item.logoUrl || undefined,
       }));
     } catch (err) {
       handlePrismaError(err, 'getExhibitors');
@@ -335,6 +421,7 @@ export async function addExhibitor(exhibitor: Exhibitor): Promise<Exhibitor> {
           name: exhibitor.name,
           highlightWord: exhibitor.highlightWord || null,
           logoColor: exhibitor.logoColor || null,
+          logoUrl: exhibitor.logoUrl || null,
         },
       });
       return {
@@ -342,6 +429,7 @@ export async function addExhibitor(exhibitor: Exhibitor): Promise<Exhibitor> {
         name: saved.name,
         highlightWord: saved.highlightWord || undefined,
         logoColor: saved.logoColor || undefined,
+        logoUrl: saved.logoUrl || undefined,
       };
     } catch (err) {
       handlePrismaError(err, 'addExhibitor');
@@ -538,8 +626,11 @@ export async function getTickets(): Promise<VisitorTicket[]> {
 }
 
 export async function addTicket(ticket: VisitorTicket): Promise<VisitorTicket> {
+  console.log(`[db.ts:addTicket] Starting operation for ticket ID: ${ticket.id}. usePrisma = ${usePrisma}, prisma client is ${prisma ? 'defined' : 'null'}`);
+  
   if (usePrisma && prisma) {
     try {
+      console.log(`[db.ts:addTicket] Attempting to insert ticket into Postgres using Prisma. TicketNumber: ${ticket.ticketNumber}`);
       const saved = await prisma.ticket.create({
         data: {
           id: ticket.id,
@@ -554,6 +645,7 @@ export async function addTicket(ticket: VisitorTicket): Promise<VisitorTicket> {
           ticketNumber: ticket.ticketNumber,
         },
       });
+      console.log(`[db.ts:addTicket] Successfully inserted ticket in Postgres database. ID: ${saved.id}`);
       return {
         id: saved.id,
         firstName: saved.firstName,
@@ -566,14 +658,30 @@ export async function addTicket(ticket: VisitorTicket): Promise<VisitorTicket> {
         createdAt: saved.createdAt,
         ticketNumber: saved.ticketNumber,
       };
-    } catch (err) {
+    } catch (err: any) {
+      console.error("[db.ts:addTicket] Prisma database insertion failed with error:", err);
       handlePrismaError(err, 'addTicket');
+      console.log("[db.ts:addTicket] Proceeding to JSON Local Fallback flow because Prisma insertion failed.");
     }
+  } else {
+    console.log("[db.ts:addTicket] Skipping Prisma insertion (Prisma is disabled or unconfigured). Going directly to JSON Fallback.");
   }
-  const db = readJsonDb();
-  db.tickets.unshift(ticket);
-  writeJsonDb(db);
-  return ticket;
+
+  try {
+    console.log(`[db.ts:addTicket] JSON FALLBACK: Accessing JSON database file at path: ${JSON_DB_FILE}`);
+    const db = readJsonDb();
+    console.log(`[db.ts:addTicket] JSON FALLBACK: Database read successfully. Current ticket count: ${db.tickets?.length || 0}`);
+    
+    db.tickets.unshift(ticket);
+    
+    console.log(`[db.ts:addTicket] JSON FALLBACK: Attempting to write updated DB to disk...`);
+    writeJsonDb(db);
+    console.log(`[db.ts:addTicket] JSON FALLBACK: Ticket successfully written and returned.`);
+    return ticket;
+  } catch (err: any) {
+    console.error("[db.ts:addTicket] Fatal failure during JSON fallback database write operation:", err);
+    throw err;
+  }
 }
 
 
