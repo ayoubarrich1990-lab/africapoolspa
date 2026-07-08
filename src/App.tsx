@@ -132,9 +132,28 @@ export default function App() {
   // Navigation hamburger for small devices
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Background images for the hero slideshow
-  const backgroundImages = [bgLuxuryPool, bgDomedHall, bgCrowdHall];
+  // Background images for the hero slideshow (dynamic state with fallback)
+  const defaultSlides = [bgLuxuryPool, bgDomedHall, bgCrowdHall];
+  const [backgroundImages, setBackgroundImages] = useState<string[]>(defaultSlides);
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
+  const [adminSlidesInput, setAdminSlidesInput] = useState('');
+  const [isSavingSlides, setIsSavingSlides] = useState(false);
+
+  const fetchSlides = async () => {
+    try {
+      const res = await fetch('/api/slides');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.slides) && data.slides.length > 0) {
+          setBackgroundImages(data.slides);
+        } else {
+          setBackgroundImages(defaultSlides);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching dynamic slides:', e);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -158,7 +177,7 @@ export default function App() {
   });
 
   // Admin Dashboard States
-  const [adminTab, setAdminTab] = useState<'stands' | 'visitors' | 'messages' | 'exhibitors'>('stands');
+  const [adminTab, setAdminTab] = useState<'stands' | 'visitors' | 'messages' | 'exhibitors' | 'slides'>('stands');
   const [adminSearch, setAdminSearch] = useState('');
   const [newExhibitorForm, setNewExhibitorForm] = useState({ name: '', highlightWord: '', logoColor: '#c8922a', logoUrl: '' });
   const [isAddingExhibitor, setIsAddingExhibitor] = useState(false);
@@ -178,7 +197,7 @@ export default function App() {
   const [copiedText, setCopiedText] = useState(false);
 
   // Securely request and route admin console access and tab redirections
-  const openAdminConsoleOrLogin = (defaultTab?: 'stands' | 'visitors' | 'messages' | 'exhibitors') => {
+  const openAdminConsoleOrLogin = (defaultTab?: 'stands' | 'visitors' | 'messages' | 'exhibitors' | 'slides') => {
     if (defaultTab) {
       setAdminTab(defaultTab);
     }
@@ -200,6 +219,7 @@ export default function App() {
 
   // Sync API States on Mount
   useEffect(() => {
+    fetchSlides();
     fetchExhibitors();
     fetchReservations();
     fetchTickets();
@@ -426,6 +446,78 @@ export default function App() {
       if (res.ok) fetchExhibitors();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // Slides slide managers
+  const handleAddSlide = (url: string) => {
+    if (!url.trim()) return;
+    setBackgroundImages((prev) => [...prev, url.trim()]);
+    setAdminSlidesInput('');
+  };
+
+  const handleRemoveSlide = (idx: number) => {
+    setBackgroundImages((prev) => {
+      const next = prev.filter((_, i) => i !== idx);
+      return next.length > 0 ? next : defaultSlides;
+    });
+    setCurrentBgIndex(0);
+  };
+
+  const handleMoveSlide = (idx: number, direction: 'up' | 'down') => {
+    setBackgroundImages((prev) => {
+      const next = [...prev];
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx >= 0 && targetIdx < next.length) {
+        const temp = next[idx];
+        next[idx] = next[targetIdx];
+        next[targetIdx] = temp;
+      }
+      return next;
+    });
+  };
+
+  const handleSaveSlides = async () => {
+    try {
+      setIsSavingSlides(true);
+      const res = await fetch('/api/slides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slides: backgroundImages }),
+      });
+      if (res.ok) {
+        alert('Diaporama enregistré avec succès !');
+        fetchSlides();
+      } else {
+        alert('Erreur lors de l’enregistrement du diaporama.');
+      }
+    } catch (e) {
+      console.error('Error saving slides:', e);
+      alert('Erreur réseau lors de l’enregistrement du diaporama.');
+    } finally {
+      setIsSavingSlides(false);
+    }
+  };
+
+  const handleResetSlides = async () => {
+    if (confirm('Voulez-vous restaurer les 3 images de diaporama par défaut ?')) {
+      try {
+        setIsSavingSlides(true);
+        const res = await fetch('/api/slides', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slides: [] }), // send empty array to tell backend to clear
+        });
+        if (res.ok) {
+          setBackgroundImages(defaultSlides);
+          setCurrentBgIndex(0);
+          alert('Diaporama d’origine restauré avec succès !');
+        }
+      } catch (e) {
+        console.error('Error resetting slides:', e);
+      } finally {
+        setIsSavingSlides(false);
+      }
     }
   };
 
@@ -2509,6 +2601,14 @@ export default function App() {
                   >
                     🏢 Edit Exposants ({exhibitors.length})
                   </button>
+                  <button
+                    onClick={() => setAdminTab('slides')}
+                    className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                      adminTab === 'slides' ? 'bg-gold text-navy font-black' : 'hover:bg-white/5 text-gray-300'
+                    }`}
+                  >
+                    🖼️ Diaporama ({backgroundImages.length})
+                  </button>
                 </div>
 
                 {/* Search query input */}
@@ -2995,6 +3095,186 @@ export default function App() {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {adminTab === 'slides' && (
+                  <div className="space-y-6">
+                    <div className="border-b border-gray-800 pb-2 flex justify-between items-center flex-wrap gap-2">
+                      <div>
+                        <h4 className="font-serif font-bold text-white text-base">
+                          Gestionnaire du Diaporama Hero (Dynamique API)
+                        </h4>
+                        <p className="text-[10px] text-gray-400">
+                          Configurez, supprimez et réordonnez les images d'arrière-plan de la section principale d'accueil.
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleResetSlides}
+                        disabled={isSavingSlides}
+                        className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-[10px] uppercase font-bold tracking-wider transition-colors cursor-pointer"
+                      >
+                        🔄 Réinitialiser
+                      </button>
+                    </div>
+
+                    {/* Add slide form */}
+                    <div className="bg-navy-light/30 border border-gray-800 p-4 rounded-lg space-y-3">
+                      <h5 className="text-xs font-extrabold uppercase text-gold tracking-widest flex items-center gap-1.5">
+                        <Plus className="h-4 w-4" /> Ajouter une Image au Diaporama
+                      </h5>
+                      <div className="flex gap-2">
+                        <input 
+                          type="url"
+                          placeholder="https://images.unsplash.com/... ou URL absolue de l'image"
+                          className="flex-1 bg-navy border border-gray-700 rounded px-2.5 py-2 text-white text-xs focus:outline-none focus:border-gold font-mono"
+                          value={adminSlidesInput}
+                          onChange={(e) => setAdminSlidesInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddSlide(adminSlidesInput);
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleAddSlide(adminSlidesInput)}
+                          className="px-4 py-2 bg-gold text-navy font-black text-xs uppercase tracking-wider rounded hover:bg-gold-light transition-all cursor-pointer"
+                        >
+                          Ajouter
+                        </button>
+                      </div>
+
+                      {/* Fast suggestions */}
+                      <div className="text-[10px] text-gray-400">
+                        <span className="font-bold">Suggestions rapides : </span>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleAddSlide('https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=1200&auto=format&fit=crop')}
+                            className="bg-navy border border-gray-800 hover:border-gold/50 text-[9px] text-gray-300 px-2 py-1 rounded transition-colors cursor-pointer"
+                          >
+                            ➕ Piscine Design
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddSlide('https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=1200&auto=format&fit=crop')}
+                            className="bg-navy border border-gray-800 hover:border-gold/50 text-[9px] text-gray-300 px-2 py-1 rounded transition-colors cursor-pointer"
+                          >
+                            ➕ Spa & Wellness
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddSlide('https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1200&auto=format&fit=crop')}
+                            className="bg-navy border border-gray-800 hover:border-gold/50 text-[9px] text-gray-300 px-2 py-1 rounded transition-colors cursor-pointer"
+                          >
+                            ➕ Extérieur Thermal
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddSlide('https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1200&auto=format&fit=crop')}
+                            className="bg-navy border border-gray-800 hover:border-gold/50 text-[9px] text-gray-300 px-2 py-1 rounded transition-colors cursor-pointer"
+                          >
+                            ➕ Événementiel B2B
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Current slideshow queue */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center flex-wrap gap-1">
+                        <h5 className="font-bold text-xs uppercase text-gray-400 tracking-wider">
+                          Diapositives Actuelles ({backgroundImages.length})
+                        </h5>
+                        <span className="text-[10px] text-gray-400 italic">
+                          💡 Cliquez sur une image pour l'apercevoir en fond du Hero
+                        </span>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {backgroundImages.map((slide, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => setCurrentBgIndex(idx)}
+                            className={`group bg-[#050f22]/50 border rounded p-3 flex items-center justify-between gap-4 cursor-pointer transition-all ${
+                              currentBgIndex === idx ? 'border-gold bg-gold/5' : 'border-gray-800 hover:border-gray-700'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="font-mono text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded shrink-0">
+                                #{idx + 1}
+                              </div>
+                              <img 
+                                src={slide} 
+                                alt={`Slide ${idx + 1}`} 
+                                className="w-16 h-10 object-cover rounded border border-gray-800 shrink-0"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => {
+                                  (e.target as any).src = 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=200&auto=format&fit=crop';
+                                }}
+                              />
+                              <div className="min-w-0">
+                                <p className="text-xs text-white truncate font-mono select-all">
+                                  {slide}
+                                </p>
+                                {currentBgIndex === idx && (
+                                  <span className="text-[9px] text-gold font-bold uppercase tracking-wider block mt-0.5">
+                                    ★ En cours d'aperçu
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => handleMoveSlide(idx, 'up')}
+                                className="p-1 hover:bg-white/5 rounded text-gray-400 hover:text-white disabled:opacity-20 cursor-pointer"
+                                title="Monter"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === backgroundImages.length - 1}
+                                onClick={() => handleMoveSlide(idx, 'down')}
+                                className="p-1 hover:bg-white/5 rounded text-gray-400 hover:text-white disabled:opacity-20 cursor-pointer"
+                                title="Descendre"
+                              >
+                                ▼
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveSlide(idx)}
+                                className="p-1 hover:bg-red-500/10 rounded text-red-400 hover:text-red-500 ml-1 cursor-pointer"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="pt-4 border-t border-gray-800 flex justify-end">
+                      <button
+                        onClick={handleSaveSlides}
+                        disabled={isSavingSlides}
+                        className="px-6 py-2.5 bg-gold text-navy font-extrabold text-xs uppercase tracking-wider rounded hover:bg-gold-light hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                      >
+                        {isSavingSlides ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-navy" /> Enregistrement...
+                          </>
+                        ) : (
+                          'Enregistrer le Diaporama'
+                        )}
+                      </button>
                     </div>
                   </div>
                 )}

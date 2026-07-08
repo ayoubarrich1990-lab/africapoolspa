@@ -1,4 +1,6 @@
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
 import type { Exhibitor, StandReservation, VisitorTicket, ContactMessage } from '../src/types.js';
 import {
   setupDatabase,
@@ -39,6 +41,38 @@ if (!isVercelEnvironment) {
 }
 
 // ================= API ENDPOINTS =================
+
+// 0. SLIDES CONFIGURATION API
+const SLIDES_FILE = isVercelEnvironment
+  ? path.join('/tmp', 'slides-config.json')
+  : path.join(process.cwd(), 'slides-config.json');
+
+app.get('/api/slides', (req, res) => {
+  try {
+    if (fs.existsSync(SLIDES_FILE)) {
+      const data = fs.readFileSync(SLIDES_FILE, 'utf-8');
+      res.json(JSON.parse(data));
+    } else {
+      res.json({ slides: [] });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur lors du chargement des diapositives.' });
+  }
+});
+
+app.post('/api/slides', (req, res) => {
+  try {
+    const { slides } = req.body;
+    if (!Array.isArray(slides)) {
+      res.status(400).json({ error: 'Format invalide. Une liste d’URLs de diapositives est attendue.' });
+      return;
+    }
+    fs.writeFileSync(SLIDES_FILE, JSON.stringify({ slides }, null, 2), 'utf-8');
+    res.json({ success: true, slides });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur lors de l’enregistrement des diapositives.' });
+  }
+});
 
 // 1. EXHIBITORS API
 app.get('/api/exhibitors', async (req, res) => {
