@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import type { VisitorTicket } from '../src/types.js';
+import { generateBadgePdf } from './pdf.js';
 
 // Lazy instantiation of the Resend client
 let resendClient: Resend | null = null;
@@ -18,7 +19,7 @@ function getResendClient(): Resend {
 /**
  * Sends a B2B accreditation email to the registered visitor with their PDF badge attached.
  */
-export async function sendBadgeEmail(ticket: VisitorTicket, pdfBuffer: Buffer): Promise<any> {
+export async function sendBadgeEmail(ticket: VisitorTicket, pdfBuffer?: Buffer): Promise<any> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn('⚠️ [sendBadgeEmail] RESEND_API_KEY is not defined. Email delivery will be skipped.');
@@ -31,6 +32,8 @@ export async function sendBadgeEmail(ticket: VisitorTicket, pdfBuffer: Buffer): 
     const filename = `Badge-${ticket.ticketNumber}.pdf`;
 
     console.log(`✉️ [sendBadgeEmail] Preparing email to ${ticket.email} for ticket ${ticket.ticketNumber}...`);
+
+    const finalPdfBuffer = pdfBuffer || await generateBadgePdf(ticket);
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -219,7 +222,7 @@ export async function sendBadgeEmail(ticket: VisitorTicket, pdfBuffer: Buffer): 
       attachments: [
         {
           filename: filename,
-          content: pdfBuffer,
+          content: finalPdfBuffer,
         },
       ],
     });
