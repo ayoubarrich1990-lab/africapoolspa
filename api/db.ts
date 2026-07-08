@@ -625,6 +625,33 @@ export async function getTickets(): Promise<VisitorTicket[]> {
   return readJsonDb().tickets;
 }
 
+export async function getTicketByNumber(ticketNumber: string): Promise<VisitorTicket | null> {
+  if (usePrisma && prisma) {
+    try {
+      const item = await prisma.ticket.findFirst({
+        where: { ticketNumber },
+      });
+      if (!item) return null;
+      return {
+        id: item.id,
+        firstName: item.firstName,
+        lastName: item.lastName,
+        company: item.company,
+        jobTitle: item.jobTitle,
+        email: item.email,
+        phone: item.phone,
+        sectorInterest: item.sectorInterest,
+        createdAt: item.createdAt,
+        ticketNumber: item.ticketNumber,
+      };
+    } catch (err) {
+      handlePrismaError(err, 'getTicketByNumber');
+    }
+  }
+  const tickets = readJsonDb().tickets;
+  return tickets.find(x => x.ticketNumber === ticketNumber) || null;
+}
+
 export async function addTicket(ticket: VisitorTicket): Promise<VisitorTicket> {
   console.log(`[db.ts:addTicket] Starting operation for ticket ID: ${ticket.id}. usePrisma = ${usePrisma}, prisma client is ${prisma ? 'defined' : 'null'}`);
   

@@ -10,6 +10,7 @@ import {
   updateReservation,
   deleteReservation,
   getTickets,
+  getTicketByNumber,
   addTicket,
   getMessages,
   addMessage,
@@ -17,6 +18,8 @@ import {
   deleteMessage,
   getDbStatus,
 } from './db.js';
+import { generateBadgePdf } from './pdf.js';
+import { sendBadgeEmail } from './email.js';
 
 const app = express();
 
@@ -172,6 +175,35 @@ app.get('/api/tickets', async (req, res) => {
   }
 });
 
+// GET /api/tickets/:ticketNumber/pdf - Download PDF badge on-the-fly
+app.get('/api/tickets/:ticketNumber/pdf', async (req, res) => {
+  try {
+    const { ticketNumber } = req.params;
+    console.log(`📥 [GET /api/tickets/${ticketNumber}/pdf] Fetching PDF for ticket number...`);
+
+    const ticket = await getTicketByNumber(ticketNumber);
+    if (!ticket) {
+      console.warn(`⚠️ [GET /api/tickets/${ticketNumber}/pdf] Ticket not found.`);
+      res.status(404).json({ error: 'Badge introuvable.' });
+      return;
+    }
+
+    console.log(`🎫 [GET /api/tickets/${ticketNumber}/pdf] Generating PDF for ${ticket.firstName} ${ticket.lastName}...`);
+    const pdfBuffer = await generateBadgePdf(ticket);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=Badge-${ticket.ticketNumber}.pdf`);
+    res.send(pdfBuffer);
+    console.log(`✅ [GET /api/tickets/${ticketNumber}/pdf] PDF badge sent successfully.`);
+  } catch (err: any) {
+    console.error(`❌ [GET /api/tickets/:ticketNumber/pdf] Fatal error:`, err);
+    res.status(500).json({
+      error: 'Erreur serveur lors de la génération du badge PDF.',
+      details: err?.message || String(err),
+    });
+  }
+});
+
 app.post('/api/tickets', async (req, res) => {
   try {
     console.log("📥 [POST /api/tickets] Received accreditation request:", req.body);
@@ -204,6 +236,15 @@ app.post('/api/tickets', async (req, res) => {
     console.log("⏳ [POST /api/tickets] Invoking addTicket...");
     const saved = await addTicket(newTicket);
     console.log("✅ [POST /api/tickets] Ticket successfully returned from addTicket:", saved);
+
+    // Send email with the badge - failures do not block registration and only log error
+    try {
+      await sendBadgeEmail(saved);
+      console.log(`📬 [POST /api/tickets] sendBadgeEmail call completed successfully for ticket: ${saved.ticketNumber}`);
+    } catch (emailErr: any) {
+      console.error(`❌ [POST /api/tickets] Error sending badge email:`, emailErr);
+    }
+
     res.status(201).json(saved);
   } catch (err: any) {
     console.error("❌ [POST /api/tickets] Fatal error caught in Express route handler:", err);

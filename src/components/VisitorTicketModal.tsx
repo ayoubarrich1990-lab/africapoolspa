@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Check, Ticket, Sparkles, Printer, ShieldAlert, Award, Calendar, MapPin, QrCode } from 'lucide-react';
+import { X, Check, Ticket, Sparkles, Printer, Download, ShieldAlert, Award, Calendar, MapPin, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { VisitorTicket } from '../types';
 
@@ -311,16 +311,23 @@ export default function VisitorTicketModal({ isOpen, onClose, onSuccess }: Visit
                 </div>
 
                 {/* Printable Action buttons */}
-                <div className="flex justify-center gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
                   <button
                     onClick={handlePrint}
-                    className="flex items-center gap-2 px-6 py-2 bg-navy text-white text-xs font-bold uppercase tracking-wider rounded shadow hover:bg-navy-light hover:shadow-md transition-all border border-navy-light"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-navy text-white text-xs font-bold uppercase tracking-wider rounded shadow hover:bg-navy-light hover:shadow-md transition-all border border-navy-light"
                   >
                     <Printer className="h-4 w-4 text-gold" /> Imprimer le badge
                   </button>
+                  <a
+                    href={`/api/tickets/${generatedTicket?.ticketNumber}/pdf`}
+                    download={`Badge-${generatedTicket?.ticketNumber}.pdf`}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-gold text-white text-xs font-bold uppercase tracking-wider rounded shadow hover:bg-gold-light hover:shadow-md transition-all border border-gold decoration-transparent"
+                  >
+                    <Download className="h-4 w-4" /> Télécharger le Badge (PDF)
+                  </a>
                   <button
                     onClick={onClose}
-                    className="px-5 py-2 border border-gray-300 text-gray-700 text-xs font-bold uppercase tracking-wider rounded hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 border border-gray-300 text-gray-700 text-xs font-bold uppercase tracking-wider rounded hover:bg-gray-50 transition-colors"
                   >
                     Fermer
                   </button>
