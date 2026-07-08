@@ -13,6 +13,7 @@ import {
   Sliders, 
   QrCode, 
   ChevronRight, 
+  ChevronLeft,
   Send, 
   Loader2, 
   Plus, 
@@ -29,7 +30,17 @@ import {
   Database,
   Wifi,
   WifiOff,
-  Copy
+  Copy,
+  Sparkles,
+  Flame,
+  Droplet,
+  Zap,
+  TrendingUp,
+  Users,
+  Compass,
+  Target,
+  Home,
+  Trees
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -38,7 +49,9 @@ import StandBookingModal from './components/StandBookingModal';
 import VisitorTicketModal from './components/VisitorTicketModal';
 import Logo from './components/Logo';
 import { AIChatAssistant } from './components/AIChatAssistant';
-import poolExpoBg from './assets/images/pool_expo_bg_1780934724088.png';
+import bgLuxuryPool from './assets/images/hero_expo_bg_1783518540159.jpg';
+import bgDomedHall from './assets/images/hero_domed_hall_bg_1783520762693.jpg';
+import bgCrowdHall from './assets/images/pool_expo_bg_1780934724088.png';
 import logoSaya from './assets/images/regenerated_image_1781003477006.png';
 import logoFrio from './assets/images/regenerated_image_1781000604311.jpg';
 import logoPoolSpa from './assets/images/regenerated_image_1781003247380.png';
@@ -118,6 +131,17 @@ export default function App() {
   
   // Navigation hamburger for small devices
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Background images for the hero slideshow
+  const backgroundImages = [bgLuxuryPool, bgDomedHall, bgCrowdHall];
+  const [currentBgIndex, setCurrentBgIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentBgIndex((prev) => (prev + 1) % backgroundImages.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [backgroundImages.length]);
 
   // Status & loading indicators
   const [loadingExhibitors, setLoadingExhibitors] = useState(true);
@@ -603,8 +627,31 @@ export default function App() {
 
       {/* ===== HERO SECTION ===== */}
       <section className="min-h-screen relative bg-navy flex items-center pt-24 pb-12 overflow-hidden" id="hero">
-        <div className="absolute inset-0 z-0 bg-cover bg-center opacity-50" style={{ backgroundImage: `url(${poolExpoBg})` }} />
-        <div className="absolute inset-0 bg-gradient-to-tr from-[#050f22] via-[#0a1f44]/98 to-[#0a1f44]/60 z-0" />
+        {/* Sliding Background Images with smooth transitions */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              key={currentBgIndex}
+              initial={{ opacity: 0, scale: 1.05 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 1.5, ease: "easeInOut" }}
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `url(${backgroundImages[currentBgIndex]})`,
+                filter: 'saturate(1.1) contrast(1.1) brightness(0.4)',
+              }}
+            />
+          </AnimatePresence>
+        </div>
+        
+        {/* Ambient Dark Gradient Overlay */}
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none select-none" 
+          style={{ 
+            background: 'linear-gradient(to bottom, rgba(5, 10, 47, 0.2) 0%, rgba(5, 10, 47, 0.7) 100%)',
+          }} 
+        />
         
         <div className="container mx-auto px-6 lg:px-12 relative z-10 w-full flex flex-col items-center justify-center py-12 text-center">
           
@@ -651,6 +698,36 @@ export default function App() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Slide Navigation Arrows */}
+        <button
+          onClick={() => setCurrentBgIndex((prev) => (prev - 1 + backgroundImages.length) % backgroundImages.length)}
+          className="absolute left-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-navy/40 hover:bg-gold hover:text-navy text-white transition-all pointer-events-auto cursor-pointer border border-white/10 hover:border-gold md:flex hidden hover:scale-105"
+          aria-label="Slide Précédent"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          onClick={() => setCurrentBgIndex((prev) => (prev + 1) % backgroundImages.length)}
+          className="absolute right-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-navy/40 hover:bg-gold hover:text-navy text-white transition-all pointer-events-auto cursor-pointer border border-white/10 hover:border-gold md:flex hidden hover:scale-105"
+          aria-label="Slide Suivant"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+
+        {/* Slide Indicator Dots */}
+        <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center gap-3">
+          {backgroundImages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentBgIndex(idx)}
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 pointer-events-auto cursor-pointer ${
+                currentBgIndex === idx ? 'bg-gold w-8' : 'bg-white/35 hover:bg-white/60'
+              }`}
+              title={`Slide ${idx + 1}`}
+            />
+          ))}
         </div>
       </section>
 
@@ -729,96 +806,672 @@ export default function App() {
         </div>
       </section>
 
-      {/* ===== OUR SECTORS OF EXPERTISE ===== */}
-      <section className="py-24 bg-white" id="secteurs">
+      {/* ===== SECTION 1: DETAILED EXHIBITION SECTORS ===== */}
+      <section className="py-24 bg-gradient-to-b from-white to-light/20 border-t border-gray-100" id="secteurs">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">PANORAMA DU SALON</span>
+            <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">16 SECTEURS SPÉCIALISÉS</span>
             <h2 className="font-serif text-navy text-3xl sm:text-4xl md:text-5xl font-black">
-              Secteurs Thématiques à l'<span>OFEC</span>
+              Explorez les secteurs de l'industrie <span className="text-gold">Pool, Spa & Outdoor</span>
             </h2>
-            <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base">
-              Découvrez les 6 univers et zones stratégiques d'exposition pour maximiser l'excellence technique et commerciale.
+            <p className="text-gray-500 font-sans max-w-2xl mx-auto text-sm sm:text-base">
+              Découvrez le panorama complet des produits, technologies et services d'exception présentés par les plus grands leaders internationaux lors d'Africa Pool & Spa Expo.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="relative rounded-lg overflow-hidden group aspect-[4/3] shadow-md border border-gray-100">
-              <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=450&q=80" alt="Pool Equipment" className="w-full height-full object-cover group-hover:scale-105 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/50 to-transparent flex flex-col justify-end p-6 text-white">
-                <div className="text-2xl mb-1 flex items-center justify-between">
-                  <span>⚙️</span>
-                  <span className="text-[10px] tracking-widest uppercase text-gold font-mono font-bold">Zone A</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {/* 1. Piscines */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=600&auto=format&fit=crop&q=80" 
+                  alt="Piscines" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Premium
                 </div>
-                <h4 className="font-serif font-bold text-base uppercase tracking-tight text-white mb-1">Pool Equipment &amp; Accessories</h4>
-                <p className="text-xs text-gray-300">Pompes à chaleur, liners, éclairage LED subaquatique et robots...</p>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🏊</span>
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Piscines</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Bassins résidentiels, piscines à débordement de luxe, couloirs de nage et innovations architecturales d'exception.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 2. Traitement de l'eau */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80" 
+                  alt="Traitement de l'eau" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Technique
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Droplet className="h-4 w-4 text-gold" />
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Traitement de l'eau</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Solutions écologiques, électrolyse au sel de dernière génération, filtration UV et désinfection intelligente.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 3. Pompes & Filtration */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80" 
+                  alt="Pompes & Filtration" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Ingénierie
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">⚙️</span>
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Pompes & Filtration</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Systèmes de circulation haute performance, filtres à verre activé écologiques et pompes à vitesse variable.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 4. Chauffage & Pompes à chaleur */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&auto=format&fit=crop&q=80" 
+                  alt="Chauffage & PAC" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Thermique
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-gold" />
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Chauffage & PAC</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Chauffage solaire innovant, échangeurs thermiques en titane et pompes à chaleur ultra-silencieuses.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 5. Spa & Wellness */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=600&auto=format&fit=crop&q=80" 
+                  alt="Spa & Wellness" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Bien-être
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🧖</span>
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Spa & Wellness</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Spas de relaxation haut de gamme, saunas scandinaves, hammams traditionnels sur mesure et rituels.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 6. Pergolas */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80" 
+                  alt="Pergolas" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Structure
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Home className="h-4 w-4 text-gold" />
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Pergolas</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Pergolas bioclimatiques motorisées, toits rétractables imperméables et structures d'ombrage design.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 7. Paysagisme */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&auto=format&fit=crop&q=80" 
+                  alt="Paysagisme" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Aménagement
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Trees className="h-4 w-4 text-gold" />
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Paysagisme</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Jardins paysagers d'exception, chutes d'eau artistiques et végétalisation méditerranéenne & tropicale.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 8. Bois composite & Decking */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=600&auto=format&fit=crop&q=80" 
+                  alt="Bois composite & Decking" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Matériaux
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🪵</span>
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Bois composite & Decking</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Terrasses ultra-résistantes, plages de piscine chaleureuses en bois naturel ou composite éco-responsable.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 9. Revêtements */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1502005229762-fc1b2b812ca5?w=600&auto=format&fit=crop&q=80" 
+                  alt="Revêtements" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Finitions
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🧱</span>
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Revêtements</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Mosaïques de verre d'art, liners armés 3D à effet texturé, enduits minéraux et pierres naturelles de piscine.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 10. Éclairage extérieur */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1565538810844-1e119412e866?w=600&auto=format&fit=crop&q=80" 
+                  alt="Éclairage" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Lumière
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-gold" />
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Éclairage</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Luminaires LED subaquatiques RGB, éclairages autonomes solaires et scénographies lumineuses pour parcs.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 11. Mobilier Outdoor */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=600&auto=format&fit=crop&q=80" 
+                  alt="Mobilier Outdoor" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Design
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🪑</span>
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Mobilier Outdoor</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Salons de jardin résistants aux UV et au sel, lits de soleil ergonomiques de palace et canapés d'extérieur.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 12. Produits chimiques */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1617155093730-a8bf47be792d?w=600&auto=format&fit=crop&q=80" 
+                  alt="Produits chimiques" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Expertise
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🧪</span>
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Produits chimiques</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Équilibre de l'eau éco-responsable, oxygène actif, chlore stabilisé haute pureté et galets multifonctions.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 13. Pierre naturelle & margelles */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&auto=format&fit=crop&q=80" 
+                  alt="Pierre naturelle" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Authenticité
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🪨</span>
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Pierre naturelle</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Dalles en travertin, margelles en granit noble, pierre de Bali haut de gamme et ardoises de caractère.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 14. Domotique & automatisation */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=80" 
+                  alt="Domotique" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Futuriste
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="h-4 w-4 text-gold" />
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Domotique</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Sondes intelligentes d'analyse en temps réel, régulations automatiques et contrôle domotique complet.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 15. Énergies renouvelables */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&auto=format&fit=crop&q=80" 
+                  alt="Énergies renouvelables" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Écologie
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-gold" />
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Énergies renouvelables</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Alimentation par panneaux photovoltaïques, couvertures solaires thermiques et systèmes à basse consommation.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* 16. Maintenance & Services */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col h-full group"
+            >
+              <div className="h-44 overflow-hidden relative">
+                <img 
+                  src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=600&auto=format&fit=crop&q=80" 
+                  alt="Maintenance & Services" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                />
+                <div className="absolute top-3 left-3 bg-navy/90 text-gold px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                  Solutions
+                </div>
+              </div>
+              <div className="p-5 flex-1 flex flex-col justify-between text-left">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🛠️</span>
+                    <h4 className="font-serif font-bold text-navy text-sm sm:text-base uppercase tracking-tight">Maintenance & Services</h4>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Audits énergétiques certifiés, rénovations structurelles lourdes, et contrats de maintenance hôtelière.
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-gray-50 mt-4 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-navy group-hover:text-gold transition-colors">
+                  <span>En savoir plus</span>
+                  <ChevronRight className="h-3 w-3" />
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SECTION 4: INNOVATION SHOWCASE ===== */}
+      <section className="bg-navy py-24 text-white relative overflow-hidden border-t border-b border-gold/20" id="innovations">
+        {/* Decorative backdrop gradients */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gold/5 blur-3xl rounded-full" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500/5 blur-3xl rounded-full" />
+
+        <div className="container mx-auto px-6 lg:px-12 relative z-10">
+          <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+            <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">ART DE VIVRE EN EXTÉRIEUR</span>
+            <h2 className="font-serif text-white text-3xl sm:text-4xl md:text-5xl font-black">
+              Les Innovations du Secteur : <span className="text-gold">Outdoor Luxury</span>
+            </h2>
+            <p className="text-gray-300 font-sans max-w-2xl mx-auto text-sm sm:text-base">
+              Plongez dans l'alliance du design de luxe et de la technologie environnementale pour sublimer vos terrasses et zones bien-être hôtelières.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            {/* Main spotlight item (7 cols) */}
+            <div className="lg:col-span-7 bg-[#0a1f44] border border-gold/20 rounded-2xl overflow-hidden flex flex-col justify-between group h-full">
+              <div className="relative h-96 overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1000&auto=format&fit=crop&q=80" 
+                  alt="Outdoor luxury concept" 
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a1f44] via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6 text-left">
+                  <span className="px-2.5 py-1 bg-gold text-navy rounded text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">
+                    CONGRES DE L'INNOVATION
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">
+                    Piscines d'Exception & Architectures Connectées
+                  </h3>
+                </div>
+              </div>
+              <div className="p-8 text-left space-y-4 flex-1 flex flex-col justify-between">
+                <p className="text-sm text-gray-300 leading-relaxed font-sans">
+                  Une immersion complète dans les infrastructures de piscines intelligentes à débordement de luxe, spas de relaxation sensoriels, pergolas bioclimatiques motorisées, et cuisines d'extérieur pour le secteur résidentiel et hôtelier haut de gamme en Afrique.
+                </p>
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5 text-xs text-gray-400">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-gold" />
+                    <span>Conception sur mesure</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-gold" />
+                    <span>Matériaux haute technologie</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-gold" />
+                    <span>Régulation connectée par IA</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-gold" />
+                    <span>Basse consommation thermique</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="relative rounded-lg overflow-hidden group aspect-[4/3] shadow-md border border-gray-100">
-              <img src="https://images.unsplash.com/photo-1559825481-12a05cc00344?w=450&q=80" alt="Water Treatment" className="w-full height-full object-cover group-hover:scale-105 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/50 to-transparent flex flex-col justify-end p-6 text-white">
-                <div className="text-2xl mb-1 flex items-center justify-between">
-                  <span>💧</span>
-                  <span className="text-[10px] tracking-widest uppercase text-gold font-mono font-bold">Zone B</span>
+            {/* Grid of details (5 cols) */}
+            <div className="lg:col-span-5 flex flex-col justify-between gap-6 h-full">
+              {/* Card 1: Wellness */}
+              <div className="bg-[#0a1f44] border border-gold/20 rounded-2xl p-6 flex gap-4 text-left group hover:border-gold/50 transition-colors">
+                <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1544816155-12df9643f363?w=300&auto=format&fit=crop&q=80" 
+                    alt="Spas & Wellness" 
+                    loading="lazy"
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
-                <h4 className="font-serif font-bold text-base uppercase tracking-tight text-white mb-1">Water Treatment</h4>
-                <p className="text-xs text-gray-300">Désinfection sans chlore, filtre écologique, électrolyseurs...</p>
+                <div className="flex-1 space-y-2">
+                  <h4 className="font-serif font-bold text-white text-base">Spas & Saunas Intelligents</h4>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Découvrez les cabines de sauna infrarouge à faible consommation, spas de nage à contre-courant et équipements de bien-être haut de gamme.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="relative rounded-lg overflow-hidden group aspect-[4/3] shadow-md border border-gray-100">
-              <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=450&q=80" alt="Spa & Wellness" className="w-full height-full object-cover group-hover:scale-105 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/50 to-transparent flex flex-col justify-end p-6 text-white">
-                <div className="text-2xl mb-1 flex items-center justify-between">
-                  <span>🧘</span>
-                  <span className="text-[10px] tracking-widest uppercase text-gold font-mono font-bold">Zone C</span>
+              {/* Card 2: Pergolas */}
+              <div className="bg-[#0a1f44] border border-gold/20 rounded-2xl p-6 flex gap-4 text-left group hover:border-gold/50 transition-colors">
+                <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1613977257363-707ba9348227?w=300&auto=format&fit=crop&q=80" 
+                    alt="Outdoor furniture" 
+                    loading="lazy"
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
-                <h4 className="font-serif font-bold text-base uppercase tracking-tight text-white mb-1">Spa &amp; Wellness</h4>
-                <p className="text-xs text-gray-300">Jacuzzis haut de gamme, cabines de saunas hammams, esthétique...</p>
+                <div className="flex-1 space-y-2">
+                  <h4 className="font-serif font-bold text-white text-base">Pergolas & Mobilier de créateurs</h4>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Pergolas bioclimatiques avec stations de recharge solaire, éclairages d'ambiance LED intégrés et canapés d'extérieur résistants.
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="relative rounded-lg overflow-hidden group aspect-[4/3] shadow-md border border-gray-100">
-              <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=450&q=80" alt="Outdoor Living" className="w-full height-full object-cover group-hover:scale-105 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/50 to-transparent flex flex-col justify-end p-6 text-white">
-                <div className="text-2xl mb-1 flex items-center justify-between">
-                  <span>🌿</span>
-                  <span className="text-[10px] tracking-widest uppercase text-gold font-mono font-bold">Zone D</span>
+              {/* Card 3: Ecology */}
+              <div className="bg-[#0a1f44] border border-gold/20 rounded-2xl p-6 flex gap-4 text-left group hover:border-gold/50 transition-colors">
+                <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=300&auto=format&fit=crop&q=80" 
+                    alt="Eco equipment" 
+                    loading="lazy"
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
-                <h4 className="font-serif font-bold text-base uppercase tracking-tight text-white mb-1">Outdoor Living</h4>
-                <p className="text-xs text-gray-300">Mobilier d'extérieur en teck, pergolas bioclimatiques...</p>
-              </div>
-            </div>
-
-            <div className="relative rounded-lg overflow-hidden group aspect-[4/3] shadow-md border border-gray-100">
-              <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=450&q=80" alt="Hospitality Solutions" className="w-full height-full object-cover group-hover:scale-105 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/50 to-transparent flex flex-col justify-end p-6 text-white">
-                <div className="text-2xl mb-1 flex items-center justify-between">
-                  <span>🏨</span>
-                  <span className="text-[10px] tracking-widest uppercase text-gold font-mono font-bold">Zone E</span>
+                <div className="flex-1 space-y-2">
+                  <h4 className="font-serif font-bold text-white text-base">Traitement d'Eau Éco-Intelligent</h4>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Systèmes d'hydrolyse pour désinfection bio sans chlore, filtres à sable de verre recyclé autonettoyants et pompes autonomes solaires.
+                  </p>
                 </div>
-                <h4 className="font-serif font-bold text-base uppercase tracking-tight text-white mb-1">Hospitality Solutions</h4>
-                <p className="text-xs text-gray-300">Architectures de piscine pour villages vacances et resorts...</p>
-              </div>
-            </div>
-
-            <div className="relative rounded-lg overflow-hidden group aspect-[4/3] shadow-md border border-gray-100">
-              <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=450&q=80" alt="Automation & Digital" className="w-full height-full object-cover group-hover:scale-105 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/50 to-transparent flex flex-col justify-end p-6 text-white">
-                <div className="text-2xl mb-1 flex items-center justify-between">
-                  <span>🤖</span>
-                  <span className="text-[10px] tracking-widest uppercase text-gold font-mono font-bold">Zone F</span>
-                </div>
-                <h4 className="font-serif font-bold text-base uppercase tracking-tight text-white mb-1">Automation &amp; Digital</h4>
-                <p className="text-xs text-gray-300">Analyse de l'eau connectée par IA, régulateurs automatiques...</p>
               </div>
             </div>
           </div>
         </div>
       </section>
-
-      {/* ===== EMBED VIDEO PORTRAYAL / MAP ADVERT ===== */}
       <section className="bg-navy py-20 text-white relative overflow-hidden" id="opportunities">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-15 pointer-events-none select-none">
           <QrCode className="w-full h-full text-gold stroke-[0.1]" />
@@ -878,7 +1531,383 @@ export default function App() {
         </div>
       </section>
 
-      {/* ===== EXHIBITORS SECTION (DYNAMIC FROM BACKEND) ===== */}
+      {/* ===== SECTION 5: MARKET OPPORTUNITIES ===== */}
+      <section className="py-24 bg-white border-b border-gray-100" id="opportunites-marche">
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* LHS (6 cols) */}
+            <div className="lg:col-span-6 space-y-6 text-left">
+              <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">DÉVELOPPEMENT CONTINENTAL</span>
+              <h2 className="font-serif text-navy text-3xl sm:text-4xl md:text-5xl font-black">
+                Les opportunités du marché africain : <span className="text-gold">Secteur en plein essor</span>
+              </h2>
+              <p className="text-gray-500 font-sans text-sm sm:text-base leading-relaxed">
+                L’Afrique connaît actuellement l’une des plus fortes dynamiques de développement d’infrastructures touristiques et résidentielles de luxe de la décennie. L’intégration de solutions d’eau de haute technologie et d’équipements bien-être d’exception s’impose aujourd’hui comme un critère de valorisation incontournable.
+              </p>
+              <p className="text-gray-500 font-sans text-sm leading-relaxed">
+                Le Maroc, idéalement positionné comme hub stratégique régional, offre des conditions commerciales et fiscales optimales pour les constructeurs, distributeurs et équipementiers internationaux désireux de s'étendre sur le continent africain.
+              </p>
+              
+              <div className="pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <h5 className="font-bold text-navy text-sm font-serif">Hub Régional</h5>
+                  <p className="text-xs text-gray-400">Le Maroc comme passerelle stratégique et commerciale de référence vers l'Afrique subsaharienne.</p>
+                </div>
+                <div className="space-y-1.5">
+                  <h5 className="font-bold text-navy text-sm font-serif">Essor Touristique</h5>
+                  <p className="text-xs text-gray-400">Une croissance exponentielle des investissements hôteliers haut de gamme et des complexes balnéaires.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* RHS Illustrated business points (6 cols) */}
+            <div className="lg:col-span-6 space-y-4">
+              {/* Point 1 */}
+              <div className="p-6 bg-light/30 border border-gray-100 rounded-xl flex gap-4 text-left group hover:border-gold/30 transition-all">
+                <div className="w-12 h-12 bg-navy text-gold rounded-lg flex items-center justify-center text-xl font-bold flex-shrink-0">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-serif font-bold text-navy text-base">Le boom résidentiel et hôtelier</h4>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    La multiplication de projets résidentiels haut de gamme, de resorts côtiers et de rénovations de palaces crée une demande constante en équipements de piscines innovantes.
+                  </p>
+                </div>
+              </div>
+
+              {/* Point 2 */}
+              <div className="p-6 bg-light/30 border border-gray-100 rounded-xl flex gap-4 text-left group hover:border-gold/30 transition-all">
+                <div className="w-12 h-12 bg-navy text-gold rounded-lg flex items-center justify-center text-xl font-bold flex-shrink-0">
+                  <Zap className="h-5 w-5" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-serif font-bold text-navy text-base">La transition écologique incontournable</h4>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Les enjeux hydriques poussent les décideurs vers des solutions éco-conçues : recyclage d'eau, filtration économe, pompes solaires et régulations intelligentes.
+                  </p>
+                </div>
+              </div>
+
+              {/* Point 3 */}
+              <div className="p-6 bg-light/30 border border-gray-100 rounded-xl flex gap-4 text-left group hover:border-gold/30 transition-all">
+                <div className="w-12 h-12 bg-navy text-gold rounded-lg flex items-center justify-center text-xl font-bold flex-shrink-0">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-serif font-bold text-navy text-base">L'explosion du Wellness haut de gamme</h4>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Les spas, hammams haut de gamme et centres de bien-être deviennent des éléments centraux d'attractivité pour la clientèle internationale en quête de séjours d'exception.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SECTION 2: WHY EXHIBIT ===== */}
+      <section className="py-24 bg-light/35 border-b border-gray-200/50" id="pourquoi-exposer">
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+            <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">B2B OPPORTUNITÉS</span>
+            <h2 className="font-serif text-navy text-3xl sm:text-4xl md:text-5xl font-black">
+              Pourquoi exposer au salon ?
+            </h2>
+            <p className="text-gray-500 font-sans max-w-2xl mx-auto text-sm sm:text-base">
+              Positionnez votre entreprise au centre de l'industrie de la piscine et du spa en Afrique, et accélérez votre croissance commerciale internationale.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Card 1 */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all space-y-4 text-left group"
+            >
+              <div className="w-12 h-12 rounded bg-navy text-gold flex items-center justify-center text-xl font-bold font-serif shadow-sm group-hover:bg-gold group-hover:text-navy transition-all">
+                <Users className="h-5 w-5" />
+              </div>
+              <h4 className="font-serif font-bold text-navy text-lg uppercase tracking-tight">Rencontrer des acheteurs qualifiés</h4>
+              <p className="text-xs text-gray-500 leading-relaxed font-sans">
+                Échangez directement avec des décideurs à fort pouvoir d'achat : hôteliers, promoteurs immobiliers, architectes, et chefs de projets gouvernementaux.
+              </p>
+            </motion.div>
+
+            {/* Card 2 */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all space-y-4 text-left group"
+            >
+              <div className="w-12 h-12 rounded bg-navy text-gold flex items-center justify-center text-xl font-bold font-serif shadow-sm group-hover:bg-gold group-hover:text-navy transition-all">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <h4 className="font-serif font-bold text-navy text-lg uppercase tracking-tight">Lancer de nouveaux produits</h4>
+              <p className="text-xs text-gray-500 leading-relaxed font-sans">
+                Profitez d'une vitrine internationale d'exception pour présenter vos innovations techniques, vos designs phares et vos exclusivités devant les médias du secteur.
+              </p>
+            </motion.div>
+
+            {/* Card 3 */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all space-y-4 text-left group"
+            >
+              <div className="w-12 h-12 rounded bg-navy text-gold flex items-center justify-center text-xl font-bold font-serif shadow-sm group-hover:bg-gold group-hover:text-navy transition-all">
+                <Compass className="h-5 w-5" />
+              </div>
+              <h4 className="font-serif font-bold text-navy text-lg uppercase tracking-tight">Accéder au marché africain</h4>
+              <p className="text-xs text-gray-500 leading-relaxed font-sans">
+                Prenez une longueur d'avance en vous implantant durablement dans l'un des marchés émergents les plus dynamiques du globe pour l'équipement d'extérieur.
+              </p>
+            </motion.div>
+
+            {/* Card 4 */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all space-y-4 text-left group"
+            >
+              <div className="w-12 h-12 rounded bg-navy text-gold flex items-center justify-center text-xl font-bold font-serif shadow-sm group-hover:bg-gold group-hover:text-navy transition-all">
+                <Briefcase className="h-5 w-5" />
+              </div>
+              <h4 className="font-serif font-bold text-navy text-lg uppercase tracking-tight">Développer son réseau</h4>
+              <p className="text-xs text-gray-500 leading-relaxed font-sans">
+                Renforcez vos liens avec les distributeurs locaux, trouvez de nouveaux partenaires technologiques ou commerciaux stratégiques et élargissez votre écosystème.
+              </p>
+            </motion.div>
+
+            {/* Card 5 */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all space-y-4 text-left group"
+            >
+              <div className="w-12 h-12 rounded bg-navy text-gold flex items-center justify-center text-xl font-bold font-serif shadow-sm group-hover:bg-gold group-hover:text-navy transition-all">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+              <h4 className="font-serif font-bold text-navy text-lg uppercase tracking-tight">Générer des opportunités commerciales</h4>
+              <p className="text-xs text-gray-500 leading-relaxed font-sans">
+                Détectez de nouveaux leads qualifiés pendant et après le salon grâce à notre système de mise en relation exclusif B2B Match pré-organisé.
+              </p>
+            </motion.div>
+
+            {/* Card 6 */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              className="bg-white p-8 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all space-y-4 text-left group"
+            >
+              <div className="w-12 h-12 rounded bg-navy text-gold flex items-center justify-center text-xl font-bold font-serif shadow-sm group-hover:bg-gold group-hover:text-navy transition-all">
+                <Megaphone className="h-5 w-5" />
+              </div>
+              <h4 className="font-serif font-bold text-navy text-lg uppercase tracking-tight">Augmenter sa visibilité de marque</h4>
+              <p className="text-xs text-gray-500 leading-relaxed font-sans">
+                Affirmez votre statut d'acteur clé ou de leader du secteur auprès de l'ensemble de la profession et des délégations officielles africaines présentes.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SECTION 3: WHO VISITS ===== */}
+      <section className="py-24 bg-white border-b border-gray-100" id="qui-visite">
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+            <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">DÉLÉGATIONS & PROFESSIONNELS</span>
+            <h2 className="font-serif text-navy text-3xl sm:text-4xl md:text-5xl font-black">
+              Qui visite le salon ?
+            </h2>
+            <p className="text-gray-500 font-sans max-w-2xl mx-auto text-sm sm:text-base">
+              L'Africa Pool & Spa Expo rassemble un visitorat de pointe rigoureusement sélectionné et ciblé, représentant l'ensemble des experts de l'aménagement.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+            {/* 1 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">🏨</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Hôtels & Resorts</h5>
+                <p className="text-[11px] text-gray-400">Directeurs généraux, responsables des achats et directeurs techniques de resorts.</p>
+              </div>
+            </div>
+
+            {/* 2 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">🏗️</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Promoteurs immobiliers</h5>
+                <p className="text-[11px] text-gray-400">Développeurs de complexes haut de gamme et d'infrastructures résidentielles.</p>
+              </div>
+            </div>
+
+            {/* 3 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">📐</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Architectes</h5>
+                <p className="text-[11px] text-gray-400">Cabinets d'architectures d'intérieur et designers d'espaces de vie prestigieux.</p>
+              </div>
+            </div>
+
+            {/* 4 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">🏊</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Constructeurs de piscines</h5>
+                <p className="text-[11px] text-gray-400">Installateurs, pisciniers spécialisés, techniciens et rénovateurs de bassins.</p>
+              </div>
+            </div>
+
+            {/* 5 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">🌿</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Paysagistes</h5>
+                <p className="text-[11px] text-gray-400">Architectes paysagers et designers d'extérieurs d'exception et terrasses.</p>
+              </div>
+            </div>
+
+            {/* 6 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">🧖</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Centres de bien-être</h5>
+                <p className="text-[11px] text-gray-400">Gérants de spas, centres thermaux, instituts de massage, thalassothérapies.</p>
+              </div>
+            </div>
+
+            {/* 7 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">🏛️</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Collectivités</h5>
+                <p className="text-[11px] text-gray-400">Décideurs publics, ingénieurs municipaux et directeurs d'équipements sportifs.</p>
+              </div>
+            </div>
+
+            {/* 8 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">📦</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Distributeurs</h5>
+                <p className="text-[11px] text-gray-400">Grossistes spécialisés en plomberie technique, chimie d'eau et pompage.</p>
+              </div>
+            </div>
+
+            {/* 9 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">🛍️</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Revendeurs</h5>
+                <p className="text-[11px] text-gray-400">Détaillants de mobilier outdoor, boutiques de bricolage et d'équipements.</p>
+              </div>
+            </div>
+
+            {/* 10 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">🧱</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Entreprises du BTP</h5>
+                <p className="text-[11px] text-gray-400">Entreprises de génie civil et de construction générale d'envergure.</p>
+              </div>
+            </div>
+
+            {/* 11 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">💼</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Facility Managers</h5>
+                <p className="text-[11px] text-gray-400">Gestionnaires de copropriétés de luxe, résidences et clubs de sports.</p>
+              </div>
+            </div>
+
+            {/* 12 */}
+            <div className="p-6 bg-light/30 border border-gray-100 rounded-xl text-left flex items-start gap-3 hover:border-gold/30 transition-all">
+              <span className="text-2xl mt-0.5">💰</span>
+              <div className="space-y-1">
+                <h5 className="font-serif font-bold text-navy text-sm sm:text-base">Investisseurs</h5>
+                <p className="text-[11px] text-gray-400">Fonds d'investissement, business angels et porteurs de projets d'envergure.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SECTION 6: WHY VISIT ===== */}
+      <section className="py-24 bg-gradient-to-b from-light/20 to-white border-b border-gray-200/50" id="pourquoi-visiter">
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+            <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">BÉNÉFICES VISITEURS</span>
+            <h2 className="font-serif text-navy text-3xl sm:text-4xl md:text-5xl font-black">
+              Pourquoi visiter le salon ?
+            </h2>
+            <p className="text-gray-500 font-sans max-w-2xl mx-auto text-sm sm:text-base">
+              Participez à 3 jours d'échanges intenses, découvrez des technologies d'avant-garde et propulsez vos projets d'aménagement vers l'excellence.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            {/* Benefit 1 */}
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-left space-y-4 flex flex-col justify-between hover:border-gold/30 transition-colors">
+              <div className="space-y-3">
+                <span className="text-3xl">💡</span>
+                <h4 className="font-serif font-bold text-navy text-base leading-snug">Découvrir les nouveautés</h4>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Explorez en avant-première les dernières innovations mondiales en robotique de nettoyage, régulation pH et design outdoor.
+                </p>
+              </div>
+              <div className="text-[10px] font-mono text-gold font-bold uppercase tracking-widest pt-2 border-t border-gray-50">01 / Innovations</div>
+            </div>
+
+            {/* Benefit 2 */}
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-left space-y-4 flex flex-col justify-between hover:border-gold/30 transition-colors">
+              <div className="space-y-3">
+                <span className="text-3xl">🤝</span>
+                <h4 className="font-serif font-bold text-navy text-base leading-snug">Rencontrer les fournisseurs</h4>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Négociez en direct avec les fabricants et équipementiers mondiaux de premier plan sans intermédiaires commerciaux.
+                </p>
+              </div>
+              <div className="text-[10px] font-mono text-gold font-bold uppercase tracking-widest pt-2 border-t border-gray-50">02 / Fournisseurs</div>
+            </div>
+
+            {/* Benefit 3 */}
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-left space-y-4 flex flex-col justify-between hover:border-gold/30 transition-colors">
+              <div className="space-y-3">
+                <span className="text-3xl">🎤</span>
+                <h4 className="font-serif font-bold text-navy text-base leading-snug">Assister aux conférences</h4>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Profitez d'interventions de haut niveau animées par des experts internationaux sur l'eau éco-responsable et l'énergie solaire.
+                </p>
+              </div>
+              <div className="text-[10px] font-mono text-gold font-bold uppercase tracking-widest pt-2 border-t border-gray-50">03 / Conférences</div>
+            </div>
+
+            {/* Benefit 4 */}
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-left space-y-4 flex flex-col justify-between hover:border-gold/30 transition-colors">
+              <div className="space-y-3">
+                <span className="text-3xl">🕸️</span>
+                <h4 className="font-serif font-bold text-navy text-base leading-snug">Développer son réseau</h4>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Établissez des relations de confiance durables avec l'ensemble des professionnels du Maghreb et d'Afrique subsaharienne.
+                </p>
+              </div>
+              <div className="text-[10px] font-mono text-gold font-bold uppercase tracking-widest pt-2 border-t border-gray-50">04 / Networking</div>
+            </div>
+
+            {/* Benefit 5 */}
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm text-left space-y-4 flex flex-col justify-between hover:border-gold/30 transition-colors">
+              <div className="space-y-3">
+                <span className="text-3xl">⚖️</span>
+                <h4 className="font-serif font-bold text-navy text-base leading-snug">Comparer les solutions</h4>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Évaluez de manière critique des centaines de marques représentées au même endroit afin de choisir les meilleurs prix.
+                </p>
+              </div>
+              <div className="text-[10px] font-mono text-gold font-bold uppercase tracking-widest pt-2 border-t border-gray-50">05 / Comparaison</div>
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="py-24 bg-light/30" id="exposants">
         <div className="container mx-auto px-6 lg:px-12">
           
@@ -958,29 +1987,59 @@ export default function App() {
         </div>
       </section>
 
-      {/* ===== LOWER EVENT ADVERTISEMENT & PROMOTION BANNER ===== */}
-      <section className="bg-gradient-to-r from-navy to-navy-light py-20 text-white border-t-2 border-gold" id="lower-stand-cta">
-        <div className="container mx-auto px-6 lg:px-12 text-center space-y-6 max-w-3xl">
-          <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">ENREGISTREMENT OUVERT</span>
-          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-black">
-            Bâtissez de Grandes Alliances Commerciales
+      {/* ===== LOWER EVENT ADVERTISEMENT & PROMOTION BANNER (PREMIUM CTA SECTION) ===== */}
+      <section className="bg-navy relative py-28 text-white border-t-2 border-gold overflow-hidden" id="lower-stand-cta">
+        {/* Ambient background decoration */}
+        <div className="absolute inset-0 bg-radial-gradient from-navy-light/40 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute right-0 bottom-0 w-96 h-96 bg-gold/5 blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute left-10 top-10 w-72 h-72 bg-navy-light/20 blur-2xl rounded-full pointer-events-none" />
+
+        <div className="container mx-auto px-6 lg:px-12 relative z-10 text-center space-y-8 max-w-4xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold/10 border border-gold/30 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-gold animate-ping" />
+            <span className="text-[10px] uppercase font-bold tracking-widest text-gold font-mono">INSCRIPTIONS & RÉSERVATIONS EN COURS</span>
+          </div>
+          
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight max-w-3xl mx-auto">
+            Propulsez Votre Entreprise au Coeur de <span className="text-gold italic font-serif">l'Écosystème</span> Africain
           </h2>
-          <p className="text-gray-300 font-sans text-sm sm:text-base leading-relaxed">
-            Configurez votre type de stand de <strong>9m² à 54m²</strong>, visualisez en temps réel son coût HT sur notre estimateur financier et transmettez le dossier en direct pour la commission d’implantation OFEC 2026.
+          
+          <p className="text-gray-300 font-sans text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+            Que vous soyez fabricant international souhaitant étendre sa distribution, ou professionnel en quête des dernières avancées technologiques, l'Africa Pool &amp; Spa Expo est votre point d'ancrage stratégique.
           </p>
+
+          {/* Premium visual benefits list before CTA buttons */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto py-6 border-y border-white/10">
+            <div className="text-center space-y-1">
+              <div className="text-gold font-serif font-bold text-lg md:text-xl">150+</div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">Exposants Globaux</div>
+            </div>
+            <div className="text-center space-y-1">
+              <div className="text-gold font-serif font-bold text-lg md:text-xl">Casablanca</div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">Hub Stratégique</div>
+            </div>
+            <div className="text-center space-y-1">
+              <div className="text-gold font-serif font-bold text-lg md:text-xl">B2B Match</div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">Rendez-vous Ciblés</div>
+            </div>
+            <div className="text-center space-y-1">
+              <div className="text-gold font-serif font-bold text-lg md:text-xl">Éco-Intelligent</div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">Focus Innovation</div>
+            </div>
+          </div>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
             <button
               id="middle-reserve-stand-btn"
               onClick={() => setIsStandModalOpen(true)}
-              className="px-8 py-3.5 bg-gold text-white font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold-light hover:shadow-xl transition-all w-full sm:w-auto"
+              className="px-8 py-4 bg-gold text-white font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold-light hover:shadow-xl transition-all w-full sm:w-auto shadow-md"
             >
               🛠️ Ouvrir le simulateur de stand
             </button>
             <button
               id="middle-b2b-badge-btn"
               onClick={() => setIsTicketModalOpen(true)}
-              className="px-8 py-3.5 bg-navy-light border border-gold/40 text-gold font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold hover:text-navy hover:border-gold transition-all w-full sm:w-auto"
+              className="px-8 py-4 bg-navy-light border border-gold/40 text-gold font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold hover:text-navy hover:border-gold transition-all w-full sm:w-auto"
             >
               🎟️ Demander mon Badge d'Accès
             </button>
