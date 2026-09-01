@@ -40,7 +40,8 @@ import {
   Compass,
   Target,
   Home,
-  Trees
+  Trees,
+  Share2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -217,6 +218,41 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Toast Notification state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
+  const getBadgeRegistrationUrl = () => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/?badge=true`;
+    }
+    return 'https://africa-pool-spa-expo.com/?badge=true';
+  };
+
+  const copyBadgeRegistrationLink = async () => {
+    const url = getBadgeRegistrationUrl();
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+      }
+      showToast('✅ Lien d’inscription Badge B2B copié ! Prêt à être envoyé à vos contacts.');
+    } catch (err) {
+      console.error('Failed to copy', err);
+      showToast('Lien : ' + url);
+    }
+  };
+
   // Sync API States on Mount
   useEffect(() => {
     fetchSlides();
@@ -226,14 +262,48 @@ export default function App() {
     fetchMessages();
   }, []);
 
-  // Synchronise le paramètre URL ou le hash pour ouvrir le modal admin de connexion
+  // Synchronise les paramètres URL et hashes pour ouvrir automatiquement les fenêtres modales
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const handleUrlRouting = () => {
+      if (typeof window === 'undefined') return;
       const params = new URLSearchParams(window.location.search);
-      if (params.get('admin') === 'true' || window.location.hash === '#admin') {
+      const hash = window.location.hash.toLowerCase();
+
+      // Route admin
+      if (params.get('admin') === 'true' || hash === '#admin') {
         setIsAdminLoginModalOpen(true);
       }
-    }
+
+      // Route inscription / badge direct
+      if (
+        params.get('badge') === 'true' || 
+        params.get('badge') === '1' || 
+        params.get('ticket') === 'true' || 
+        params.get('inscription') === 'badge' ||
+        params.get('register') === 'ticket' ||
+        hash === '#badge' || 
+        hash === '#inscription' || 
+        hash === '#inscription-badge' || 
+        hash === '#ticket' || 
+        hash === '#pass' ||
+        hash === '#badging'
+      ) {
+        setIsTicketModalOpen(true);
+      }
+
+      // Route stand booking
+      if (params.get('stand') === 'true' || hash === '#stand' || hash === '#reservation') {
+        setIsStandModalOpen(true);
+      }
+    };
+
+    handleUrlRouting();
+    window.addEventListener('hashchange', handleUrlRouting);
+    window.addEventListener('popstate', handleUrlRouting);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlRouting);
+      window.removeEventListener('popstate', handleUrlRouting);
+    };
   }, []);
 
   const fetchExhibitors = async () => {
@@ -599,6 +669,18 @@ export default function App() {
 
           <li>
             <button 
+              id="share-badge-trigger-nav"
+              onClick={copyBadgeRegistrationLink}
+              className="px-3 py-1.5 rounded bg-white/10 text-white hover:bg-gold hover:text-navy text-xs font-bold uppercase tracking-wider border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Copier le lien d'inscription badge pour vos contacts"
+            >
+              <Share2 className="h-3.5 w-3.5 text-gold" />
+              <span>Lien Badge B2B</span>
+            </button>
+          </li>
+
+          <li>
+            <button 
               id="reserver-stand-trigger-nav"
               onClick={() => setIsStandModalOpen(true)}
               className="px-4 py-2 bg-gold text-white text-xs font-bold uppercase tracking-wider rounded border border-gold hover:bg-gold-light hover:border-gold-light shadow hover:shadow-lg transition-all"
@@ -701,6 +783,16 @@ export default function App() {
                 </button>
               </div>
 
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  copyBadgeRegistrationLink();
+                }}
+                className="w-full py-2.5 bg-white/5 border border-gold/40 text-gold font-bold text-xs uppercase tracking-widest rounded text-center flex items-center justify-center gap-2 hover:bg-gold hover:text-navy transition-all"
+              >
+                <Share2 className="h-3.5 w-3.5" /> Copier le Lien d'Inscription Badge
+              </button>
+
               {isAdminAuthenticated && (
                 <button
                   onClick={() => {
@@ -773,20 +865,29 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-center items-center flex-wrap">
               <button
                 id="btn-main-reserve-stand"
                 onClick={() => setIsStandModalOpen(true)}
-                className="px-8 py-4 bg-gold text-white font-extrabold text-sm uppercase tracking-widest rounded shadow-xl hover:bg-gold-light hover:-translate-y-0.5 transition-all text-center flex items-center justify-center gap-2"
+                className="px-6 py-4 bg-gold text-white font-extrabold text-xs sm:text-sm uppercase tracking-widest rounded shadow-xl hover:bg-gold-light hover:-translate-y-0.5 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>S'enregistrer comme Exposant</span> <ChevronRight className="h-4 w-4" />
               </button>
               <button
                 id="btn-main-visitor-badge"
                 onClick={() => setIsTicketModalOpen(true)}
-                className="px-8 py-4 bg-white/10 border border-white/20 text-white font-extrabold text-sm uppercase tracking-widest rounded hover:bg-white/15 transition-all text-center flex items-center justify-center gap-2"
+                className="px-6 py-4 bg-white/10 border border-white/20 text-white font-extrabold text-xs sm:text-sm uppercase tracking-widest rounded hover:bg-white/15 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Obtenir mon e-Badge Gratuit</span>
+              </button>
+              <button
+                id="btn-main-share-badge"
+                onClick={copyBadgeRegistrationLink}
+                className="px-5 py-4 bg-navy-light/90 border border-gold/40 text-gold hover:bg-gold hover:text-navy font-bold text-xs sm:text-sm uppercase tracking-wider rounded transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
+                title="Copier le lien direct d'inscription pour l'envoyer à vos contacts"
+              >
+                <Share2 className="h-4 w-4" />
+                <span>Partager le lien d'inscription</span>
               </button>
             </div>
           </div>
@@ -2872,6 +2973,62 @@ export default function App() {
                       </p>
                     </div>
 
+                    {/* Campaign & Direct Badge Link Card */}
+                    <div className="bg-navy-light/40 border border-gold/40 rounded-lg p-4 space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 rounded bg-gold/10 text-gold border border-gold/30">
+                            <Share2 className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <h5 className="font-bold text-xs text-white uppercase tracking-wider">
+                              Lien direct d'inscription Badge pour vos contacts
+                            </h5>
+                            <p className="text-[10px] text-gray-400">
+                              Ouvre directement le formulaire d'accréditation et de génération de badge B2B.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <a
+                            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                              `*AFRICA POOL & SPA EXPO 2026*\nSalon International de la Piscine et du Spa (Casablanca)\n\nObtenez votre accréditation et votre e-Badge d'accès professionnel gratuit :\n${getBadgeRegistrationUrl()}`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold flex items-center gap-1.5 transition-colors"
+                          >
+                            <span>Diffuser sur WhatsApp</span>
+                          </a>
+                          <a
+                            href={`mailto:?subject=${encodeURIComponent(
+                              "Invitation & Badge B2B Gratuit - Africa Pool & Spa Expo 2026"
+                            )}&body=${encodeURIComponent(
+                              `Bonjour,\n\nVoici le lien d'inscription officiel pour obtenir votre accréditation et badge d'accès professionnel gratuit pour les 3 jours d'Africa Pool & Spa Expo 2026 à Casablanca :\n\n${getBadgeRegistrationUrl()}\n\nDate : 20 au 22 Octobre 2026\nLieu : OFEC Casablanca, Maroc`
+                            )}`}
+                            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded text-xs font-bold flex items-center gap-1.5 transition-colors border border-gray-700"
+                          >
+                            <Mail className="h-3.5 w-3.5 text-gold" /> Emailing
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 bg-[#050f22] border border-gray-700 rounded p-2">
+                        <input 
+                          type="text" 
+                          readOnly 
+                          value={getBadgeRegistrationUrl()}
+                          className="bg-transparent text-xs text-gold font-mono flex-1 outline-none px-1 select-all"
+                        />
+                        <button
+                          onClick={copyBadgeRegistrationLink}
+                          className="px-4 py-1.5 bg-gold hover:bg-gold-light text-navy text-xs font-black uppercase tracking-wider rounded flex items-center gap-1.5 transition-all cursor-pointer"
+                        >
+                          <Copy className="h-3.5 w-3.5" /> Copier le Lien
+                        </button>
+                      </div>
+                    </div>
+
                     {filteredTickets.length === 0 ? (
                       <div className="py-12 text-center text-gray-500 font-mono text-xs">
                         Aucun e-badge professionnel identifié sous ce filtre.
@@ -3293,6 +3450,31 @@ export default function App() {
 
       {/* Floating AI Chat Assistant */}
       <AIChatAssistant />
+
+      {/* Floating Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[3000] bg-navy text-white px-5 py-3 rounded-xl shadow-2xl border border-gold/60 flex items-center gap-3 max-w-md w-[90%]"
+          >
+            <div className="p-1.5 rounded-full bg-gold/20 text-gold flex-shrink-0">
+              <CheckCircle2 className="h-4 w-4" />
+            </div>
+            <p className="text-xs font-semibold text-white/90 flex-1 leading-snug">
+              {toastMessage}
+            </p>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="text-white/60 hover:text-white p-1"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
