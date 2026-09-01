@@ -38,14 +38,14 @@ export async function generateBadgePdf(ticket: VisitorTicket): Promise<Buffer> {
 
       // 4. Main Title/Expo branding
       doc.fillColor('#ffffff')
-         .fontSize(12)
+         .fontSize(9.5)
          .font('Helvetica-Bold')
-         .text('AFRICA POOL & SPA EXPO', 0, 62, { align: 'center', characterSpacing: 1 });
-         
+         .text('SALON INTERNATIONAL DE LA PISCINE ET DU SPA', 10, 56, { align: 'center', width: 280, characterSpacing: 0.5 });
+          
       doc.fillColor('#c8922a')
-         .fontSize(10.5)
+         .fontSize(9)
          .font('Helvetica-Bold')
-         .text('2026', 0, 77, { align: 'center', characterSpacing: 2 });
+         .text('AFRICA POOL & SPA EXPO 2026', 10, 72, { align: 'center', width: 280, characterSpacing: 1.5 });
 
       // Fine golden divider line
       doc.strokeColor('rgba(200, 146, 42, 0.35)')

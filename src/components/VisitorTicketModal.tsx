@@ -261,7 +261,10 @@ export default function VisitorTicketModal({ isOpen, onClose, onSuccess }: Visit
                   {/* Body Info */}
                   <div className="p-6 text-center space-y-4">
                     <div className="space-y-0.5">
-                      <div className="text-[10px] uppercase font-bold tracking-widest text-gold font-mono">
+                      <div className="text-[11px] uppercase font-extrabold tracking-wider text-white font-sans">
+                        SALON INTERNATIONAL DE LA PISCINE ET DU SPA
+                      </div>
+                      <div className="text-[9px] uppercase font-bold tracking-widest text-gold font-mono">
                         AFRICA POOL & SPA EXPO 2026
                       </div>
                       <div className="text-[9px] text-white/50 tracking-wider font-mono">
