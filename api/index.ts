@@ -21,8 +21,13 @@ import {
   getDbStatus,
 } from './db.js';
 import { generateBadgePdf } from './pdf.js';
-import { sendBadgeEmail } from './email.js';
+import { sendBadgeEmail, testResendConnection } from './email.js';
 import { recordSiteVisit, getVisitorAnalyticsSummary, resetVisitorAnalytics } from './analytics.js';
+import {
+  sendAdminVerificationCode,
+  verifyAdminOtpCode,
+  getAdminVerificationConfig,
+} from './admin-auth.js';
 
 const app = express();
 
@@ -42,6 +47,74 @@ if (!isVercelEnvironment) {
 }
 
 // ================= API ENDPOINTS =================
+
+// 0.0 ADMIN 2FA VERIFICATION (EMAIL ONLY)
+app.get('/api/admin/verification-config', (req, res) => {
+  try {
+    const config = getAdminVerificationConfig();
+    res.json(config);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Erreur lors de la récupération de la configuration de sécurité.' });
+  }
+});
+
+app.post('/api/admin/send-verification', async (req, res) => {
+  try {
+    const { method, phone, email } = req.body || {};
+    const clientIp = (
+      req.headers['x-forwarded-for'] ||
+      req.socket.remoteAddress ||
+      ''
+    ) as string;
+    const ip = typeof clientIp === 'string' ? clientIp.split(',')[0].trim() : '';
+    const userAgent = req.headers['user-agent'] || '';
+
+    const result = await sendAdminVerificationCode({
+      email,
+      ip,
+      userAgent,
+    });
+
+    res.json(result);
+  } catch (err: any) {
+    console.error('Error in /api/admin/send-verification:', err);
+    res.status(500).json({ error: "Erreur lors de l'envoi du code de vérification administrateur." });
+  }
+});
+
+app.post('/api/admin/verify-code', (req, res) => {
+  try {
+    const { code } = req.body || {};
+    if (!code) {
+      res.status(400).json({ success: false, message: 'Le code de vérification est requis.' });
+      return;
+    }
+
+    const verification = verifyAdminOtpCode(code);
+    if (!verification.success) {
+      res.status(400).json(verification);
+      return;
+    }
+
+    res.json(verification);
+  } catch (err: any) {
+    console.error('Error in /api/admin/verify-code:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur lors de la validation du code.' });
+  }
+});
+
+app.all('/api/admin/test-resend', async (req, res) => {
+  try {
+    const recipient = (req.body?.recipient || req.query.recipient || '').toString().trim() || undefined;
+    const testResult = await testResendConnection(recipient);
+    res.json(testResult);
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err?.message || 'Erreur lors du test de connexion Resend.',
+    });
+  }
+});
 
 // 0. SLIDES CONFIGURATION API
 const SLIDES_FILE = isVercelEnvironment

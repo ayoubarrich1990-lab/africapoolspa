@@ -50,7 +50,11 @@ import {
   Tablet,
   Download,
   RefreshCw,
-  Navigation
+  Navigation,
+  KeyRound,
+  MessageSquare,
+  Clock,
+  ArrowLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -131,19 +135,155 @@ export default function App() {
   const [adminPassword, setAdminPassword] = useState('');
   const [adminLoginError, setAdminLoginError] = useState('');
 
-  // Handle Admin Auth
-  const handleAdminLoginSubmit = (e: React.FormEvent) => {
+  // 2FA Admin Verification States (Email only)
+  const [adminLoginStep, setAdminLoginStep] = useState<'credentials' | '2fa'>('credentials');
+  const [admin2faEmail, setAdmin2faEmail] = useState('ayoubarrich1990@gmail.com');
+  const [admin2faCode, setAdmin2faCode] = useState('');
+  const [admin2faLoading, setAdmin2faLoading] = useState(false);
+  const [admin2faVerifying, setAdmin2faVerifying] = useState(false);
+  const [admin2faError, setAdmin2faError] = useState('');
+  const [admin2faSuccessMsg, setAdmin2faSuccessMsg] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [admin2faSentInfo, setAdmin2faSentInfo] = useState<{
+    maskedEmail?: string;
+    targetEmail?: string;
+    emailDeliveryStatus?: string;
+    expiresInSeconds?: number;
+  } | null>(null);
+  const [showConfigDetails, setShowConfigDetails] = useState(false);
+
+  // Cooldown counter
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [resendCooldown]);
+
+  const fetchAdminVerificationConfig = async () => {
+    try {
+      const res = await fetch('/api/admin/verification-config');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.email) setAdmin2faEmail(data.email);
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  const [testingResend, setTestingResend] = useState(false);
+  const [resendTestResult, setResendTestResult] = useState<{
+    success: boolean;
+    message: string;
+    emailId?: string;
+    actualSenderUsed?: string;
+    recipientAttempted?: string;
+  } | null>(null);
+
+  const runResendTest = async () => {
+    setTestingResend(true);
+    setResendTestResult(null);
+    try {
+      const res = await fetch('/api/admin/test-resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipient: admin2faEmail || 'digitalrh8@gmail.com' }),
+      });
+      const data = await res.json();
+      setResendTestResult(data);
+      if (data.success) {
+        showToast('✉️ Test Resend réussi : Email de test délivré en boîte de réception !');
+      } else {
+        showToast('⚠️ Résultat du test Resend reçu.');
+      }
+    } catch (err: any) {
+      setResendTestResult({ success: false, message: err?.message || 'Erreur réseau lors du test.' });
+    } finally {
+      setTestingResend(false);
+    }
+  };
+
+  // Send 2FA Verification Code via Email (Resend)
+  const sendVerificationCode = async () => {
+    setAdmin2faLoading(true);
+    setAdmin2faError('');
+    setAdmin2faSuccessMsg('');
+    try {
+      const res = await fetch('/api/admin/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: admin2faEmail,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAdmin2faSentInfo(data);
+        setAdmin2faSuccessMsg(data.message);
+        setResendCooldown(30);
+      } else {
+        setAdmin2faError(data.error || "Impossible d'expédier le code de sécurité.");
+      }
+    } catch (err: any) {
+      setAdmin2faError("Erreur réseau lors de l'envoi du code.");
+    } finally {
+      setAdmin2faLoading(false);
+    }
+  };
+
+  // Handle Step 1 Submit (Credentials check -> initiates 2FA via Email)
+  const handleAdminLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminLoginError('');
     if (adminUsername.trim().toLowerCase() === 'admin' && adminPassword === 'casa2026') {
-      setIsAdminAuthenticated(true);
-      sessionStorage.setItem('isAdminAuthenticated', 'true');
-      setIsAdminLoginModalOpen(false);
-      setIsAdminPanelOpen(true);
-      setAdminUsername('');
-      setAdminPassword('');
+      setAdminLoginStep('2fa');
+      setAdminLoginError('');
+      await sendVerificationCode();
     } else {
       setAdminLoginError('Identifiant ou mot de passe incorrect.');
+    }
+  };
+
+  // Handle Step 2 Submit (2FA OTP verification)
+  const handleVerify2faSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanCode = admin2faCode.replace(/\s+/g, '').trim();
+    if (!cleanCode || cleanCode.length < 6) {
+      setAdmin2faError('Veuillez saisir le code complet à 6 chiffres.');
+      return;
+    }
+    setAdmin2faVerifying(true);
+    setAdmin2faError('');
+    try {
+      const res = await fetch('/api/admin/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: cleanCode }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setIsAdminAuthenticated(true);
+        sessionStorage.setItem('isAdminAuthenticated', 'true');
+        if (data.token) {
+          sessionStorage.setItem('adminAuthToken', data.token);
+        }
+        showToast('🔐 Validation 2FA réussie ! Accès Administrateur autorisé.');
+        setIsAdminLoginModalOpen(false);
+        setIsAdminPanelOpen(true);
+        // Reset modal state
+        setAdminLoginStep('credentials');
+        setAdminUsername('');
+        setAdminPassword('');
+        setAdmin2faCode('');
+        setAdmin2faSentInfo(null);
+      } else {
+        setAdmin2faError(data.message || 'Code de vérification invalide.');
+      }
+    } catch (err) {
+      setAdmin2faError('Erreur de communication lors de la validation du code.');
+    } finally {
+      setAdmin2faVerifying(false);
     }
   };
   
@@ -456,6 +596,7 @@ export default function App() {
     fetchTickets();
     fetchMessages();
     fetchVisitorStats();
+    fetchAdminVerificationConfig();
     recordCurrentVisitorEntry();
   }, []);
 
@@ -2709,7 +2850,7 @@ export default function App() {
       />
 
 
-      {/* ===== SECURE ORGANIZER SIGNIN DIALOG ===== */}
+      {/* ===== SECURE ORGANIZER SIGNIN & 2FA VERIFICATION DIALOG ===== */}
       <AnimatePresence>
         {isAdminLoginModalOpen && (
           <div className="fixed inset-0 z-[4000] flex items-center justify-center p-4 font-sans" id="admin-login-modal-wrapper">
@@ -2720,7 +2861,10 @@ export default function App() {
               exit={{ opacity: 0 }}
               onClick={() => {
                 setIsAdminLoginModalOpen(false);
+                setAdminLoginStep('credentials');
                 setAdminLoginError('');
+                setAdmin2faError('');
+                setAdmin2faSuccessMsg('');
               }}
               className="absolute inset-0 bg-[#050f22]/90 backdrop-blur-md"
             />
@@ -2730,78 +2874,318 @@ export default function App() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-md bg-[#0a1f44] border-2 border-gold/40 rounded-xl p-8 shadow-2xl text-white z-10 font-sans"
+              className="relative w-full max-w-lg bg-[#0a1f44] border-2 border-gold/50 rounded-2xl p-6 sm:p-8 shadow-2xl text-white z-10 font-sans max-h-[90vh] overflow-y-auto"
               id="admin-login-modal-content"
             >
               {/* Close Button */}
               <button 
                 onClick={() => {
                   setIsAdminLoginModalOpen(false);
+                  setAdminLoginStep('credentials');
                   setAdminLoginError('');
+                  setAdmin2faError('');
+                  setAdmin2faSuccessMsg('');
                 }}
-                className="absolute top-4 right-4 text-white/50 hover:text-white p-1 hover:bg-white/5 rounded-full transition-colors"
-                title="Clore la fenêtre de connexion"
+                className="absolute top-4 right-4 text-white/50 hover:text-white p-1 hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                title="Fermer la fenêtre d'authentification"
               >
                 <X className="h-5 w-5" />
               </button>
 
-              {/* Padlock Accent banner */}
-              <div className="flex flex-col items-center text-center space-y-3 mb-6">
-                <div className="w-14 h-14 bg-gold/10 border border-gold/40 text-gold flex items-center justify-center rounded-full shadow-inner animate-[pulse_3s_infinite]">
-                  <Lock className="h-6 w-6" />
+              {/* Security Stepper Indicator */}
+              <div className="flex items-center justify-center gap-2 mb-6 text-xs font-semibold">
+                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
+                  adminLoginStep === 'credentials'
+                    ? 'bg-gold/20 border-gold text-gold shadow-sm'
+                    : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
+                }`}>
+                  {adminLoginStep === '2fa' ? <CheckCircle2 className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+                  <span>1. Identifiants</span>
                 </div>
-                <div>
-                  <h3 className="font-serif text-xl font-bold tracking-tight text-white">Espace Administrateur</h3>
-                  <p className="text-xs text-gray-400 mt-1">Accès réservé aux organisateurs du salon de Casablanca</p>
+                <div className="w-6 h-0.5 bg-gray-700" />
+                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
+                  adminLoginStep === '2fa'
+                    ? 'bg-gold/20 border-gold text-gold shadow-[0_0_12px_rgba(200,146,42,0.3)]'
+                    : 'bg-gray-800/40 border-gray-700 text-gray-500'
+                }`}>
+                  <Mail className="h-3.5 w-3.5" />
+                  <span>2. Sécurité E-mail</span>
                 </div>
               </div>
 
-              {/* Login Form */}
-              <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
-                {adminLoginError && (
-                  <div className="p-3 bg-rose-500/15 border border-rose-500/30 rounded text-rose-300 text-xs text-left leading-relaxed">
-                    ⚠️ {adminLoginError}
+              {/* ================= STEP 1: CREDENTIALS ================= */}
+              {adminLoginStep === 'credentials' ? (
+                <div>
+                  {/* Padlock Accent banner */}
+                  <div className="flex flex-col items-center text-center space-y-3 mb-6">
+                    <div className="w-14 h-14 bg-gold/10 border border-gold/40 text-gold flex items-center justify-center rounded-full shadow-inner animate-[pulse_3s_infinite]">
+                      <Lock className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-serif text-xl font-bold tracking-tight text-white">Espace Administrateur</h3>
+                      <p className="text-xs text-gray-400 mt-1">Accès réservé aux organisateurs du salon de Casablanca</p>
+                      <div className="mt-2 inline-flex items-center gap-1 text-[11px] text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                        <KeyRound className="h-3 w-3" />
+                        Validation de sécurité par e-mail requise
+                      </div>
+                    </div>
                   </div>
-                )}
 
-                <div className="space-y-1.5 text-left text-xs">
-                  <label className="block text-gray-300 font-bold uppercase tracking-wider">Identifiant Administrateur</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-gold" />
-                    <input 
-                      type="text"
-                      required
-                      autoFocus
-                      placeholder="Identifiant de l'organisateur"
-                      className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
-                      value={adminUsername}
-                      onChange={(e) => setAdminUsername(e.target.value)}
-                    />
+                  {/* Login Form */}
+                  <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
+                    {adminLoginError && (
+                      <div className="p-3 bg-rose-500/15 border border-rose-500/30 rounded-lg text-rose-300 text-xs text-left leading-relaxed flex items-start gap-2">
+                        <span>⚠️</span>
+                        <div>{adminLoginError}</div>
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5 text-left text-xs">
+                      <label className="block text-gray-300 font-bold uppercase tracking-wider">Identifiant Administrateur</label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-gold" />
+                        <input 
+                          type="text"
+                          required
+                          autoFocus
+                          placeholder="Identifiant de l'organisateur"
+                          className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
+                          value={adminUsername}
+                          onChange={(e) => setAdminUsername(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 text-left text-xs">
+                      <label className="block text-gray-300 font-bold uppercase tracking-wider">Mot de passe / Passcode</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gold" />
+                        <input 
+                          type="password"
+                          required
+                          placeholder="Mot de passe"
+                          className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
+                          value={adminPassword}
+                          onChange={(e) => setAdminPassword(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <button 
+                      type="submit"
+                      disabled={admin2faLoading}
+                      className="w-full py-3 bg-gold text-navy font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold-light transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-3 disabled:opacity-50"
+                    >
+                      {admin2faLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" /> Envoi du code par e-mail...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4" /> Continuer &amp; Recevoir le code par e-mail
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                /* ================= STEP 2: 2FA OTP VALIDATION (EMAIL ONLY) ================= */
+                <div>
+                  <div className="flex flex-col items-center text-center space-y-2 mb-5">
+                    <div className="w-14 h-14 bg-gold/15 border border-gold text-gold flex items-center justify-center rounded-full shadow-[0_0_20px_rgba(200,146,42,0.25)]">
+                      <KeyRound className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-serif text-xl font-bold tracking-tight text-white">Validation de Sécurité par E-mail</h3>
+                      <p className="text-xs text-gray-300 mt-1">
+                        Saisissez le code de sécurité à 6 chiffres envoyé à votre adresse e-mail pour déverrouiller le Backoffice
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Sent Coordinates Banner */}
+                  <div className="bg-[#050f22]/80 border border-gold/30 rounded-xl p-3.5 mb-4 text-xs space-y-2 text-left">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 font-medium">Canal de validation :</span>
+                      <span className="text-emerald-400 flex items-center gap-1 text-[11px] font-semibold">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                        Code e-mail transmis
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-gray-200 bg-white/5 px-2.5 py-2 rounded-lg border border-white/5">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gold" />
+                        <span className="text-xs">E-mail Administrateur :</span>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-gold truncate max-w-[220px]">
+                        {admin2faSentInfo?.maskedEmail || admin2faEmail}
+                      </span>
+                    </div>
+
+                    {/* Live delivery status indicator */}
+                    {admin2faSentInfo?.emailDeliveryStatus && (
+                      <div className="text-[10px] text-emerald-400/90 bg-emerald-950/40 border border-emerald-500/20 px-2.5 py-1 rounded flex items-center gap-1.5">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-400 shrink-0" />
+                        <span className="truncate">{admin2faSentInfo.emailDeliveryStatus}</span>
+                      </div>
+                    )}
+
+                    <div className="pt-1 flex items-center justify-between text-[11px] text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-gold" />
+                        Validité : 10 minutes
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowConfigDetails(!showConfigDetails)}
+                        className="text-gold hover:underline cursor-pointer"
+                      >
+                        {showConfigDetails ? 'Masquer paramètres' : 'Paramètres & Test Resend'}
+                      </button>
+                    </div>
+
+                    {showConfigDetails && (
+                      <div className="pt-2 mt-2 border-t border-gray-800 space-y-2">
+                        <div>
+                          <label className="text-[10px] text-gray-400 block mb-1">E-mail Administrateur :</label>
+                          <input
+                            type="email"
+                            value={admin2faEmail}
+                            onChange={(e) => setAdmin2faEmail(e.target.value)}
+                            className="w-full bg-[#030a17] border border-gray-700 rounded px-2.5 py-1.5 text-xs text-white font-mono"
+                            placeholder="admin@gmail.com"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => sendVerificationCode()}
+                            disabled={admin2faLoading}
+                            className="py-1.5 bg-gold/20 hover:bg-gold/30 border border-gold/40 text-gold rounded text-[11px] font-semibold cursor-pointer"
+                          >
+                            Renvoyer le code
+                          </button>
+                          <button
+                            type="button"
+                            onClick={runResendTest}
+                            disabled={testingResend}
+                            className="py-1.5 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-300 rounded text-[11px] font-semibold cursor-pointer flex items-center justify-center gap-1"
+                          >
+                            {testingResend ? (
+                              <>
+                                <Loader2 className="h-3 w-3 animate-spin" /> Test en cours...
+                              </>
+                            ) : (
+                              <>
+                                <Mail className="h-3 w-3" /> Tester API Resend
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        {resendTestResult && (
+                          <div className={`p-2 rounded text-[10px] border ${
+                            resendTestResult.success
+                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                              : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                          }`}>
+                            <div className="font-bold flex items-center gap-1">
+                              {resendTestResult.success ? <CheckCircle2 className="h-3 w-3 text-emerald-400" /> : <span>⚠️</span>}
+                              {resendTestResult.message}
+                            </div>
+                            {resendTestResult.emailId && (
+                              <div className="text-gray-400 mt-0.5 font-mono text-[9px]">
+                                ID Resend : {resendTestResult.emailId}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Feedback alerts */}
+                  {admin2faError && (
+                    <div className="mb-4 p-3 bg-rose-500/15 border border-rose-500/30 rounded-lg text-rose-300 text-xs text-left leading-relaxed flex items-start gap-2">
+                      <span>⚠️</span>
+                      <div>{admin2faError}</div>
+                    </div>
+                  )}
+
+                  {admin2faSuccessMsg && !admin2faError && (
+                    <div className="mb-4 p-2.5 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-300 text-xs text-left leading-relaxed flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                      <div>{admin2faSuccessMsg}</div>
+                    </div>
+                  )}
+
+                  {/* Verification Form */}
+                  <form onSubmit={handleVerify2faSubmit} className="space-y-4">
+                    <div className="space-y-2 text-left">
+                      <label className="block text-gray-300 font-bold uppercase tracking-wider text-xs">
+                        Code de Sécurité (6 chiffres) :
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={6}
+                          autoFocus
+                          required
+                          placeholder="• • • • • •"
+                          value={admin2faCode}
+                          onChange={(e) => setAdmin2faCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          className="w-full bg-[#050f22] border-2 border-gold/40 focus:border-gold rounded-xl py-3 px-4 text-center text-2xl font-mono font-bold text-white tracking-[0.4em] placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gold/30 transition-all shadow-inner"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={admin2faVerifying || admin2faCode.trim().length < 6}
+                      className="w-full py-3.5 bg-gold text-navy font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-gold-light transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                    >
+                      {admin2faVerifying ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" /> Vérification en cours...
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="h-4 w-4" /> Valider et Ouvrir la Console
+                        </>
+                      )}
+                    </button>
+                  </form>
+
+                  {/* Footer actions: resend & back to credentials */}
+                  <div className="mt-4 pt-4 border-t border-gray-800 flex items-center justify-between text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminLoginStep('credentials');
+                        setAdmin2faError('');
+                      }}
+                      className="text-gray-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5" />
+                      Modifier les identifiants
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={resendCooldown > 0 || admin2faLoading}
+                      onClick={() => sendVerificationCode()}
+                      className="text-gold hover:underline disabled:text-gray-500 disabled:no-underline cursor-pointer flex items-center gap-1"
+                    >
+                      <RefreshCw className={`h-3 w-3 ${admin2faLoading ? 'animate-spin' : ''}`} />
+                      {resendCooldown > 0 ? `Renvoyer le code (${resendCooldown}s)` : 'Renvoyer le code'}
+                    </button>
                   </div>
                 </div>
-
-                <div className="space-y-1.5 text-left text-xs">
-                  <label className="block text-gray-300 font-bold uppercase tracking-wider">Mot de passe / Passcode</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gold" />
-                    <input 
-                      type="password"
-                      required
-                      placeholder="Mot de passe"
-                      className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
-                      value={adminPassword}
-                      onChange={(e) => setAdminPassword(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <button 
-                  type="submit"
-                  className="w-full py-3 bg-gold text-navy font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold-light transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-2"
-                >
-                  <ShieldCheck className="h-4 w-4" /> Se connecter au Backoffice
-                </button>
-              </form>
+              )}
             </motion.div>
           </div>
         )}
@@ -2839,7 +3223,12 @@ export default function App() {
                     <h3 className="font-serif text-lg font-bold text-white flex items-center gap-2">
                       Organisateur Backoffice <span className="text-gold text-xs px-2 py-0.5 bg-gold/15 rounded">B2B Core API</span>
                     </h3>
-                    <p className="text-[10px] text-gray-400">Simulation de gestion d'implantation, de badges et contact en temps réel</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="text-[10px] text-gray-400">Simulation de gestion d'implantation, de badges et contact en temps réel</p>
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 rounded text-emerald-300 text-[9px] font-bold">
+                        <ShieldCheck className="h-2.5 w-2.5" /> 2FA E-mail Validé
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -2847,10 +3236,15 @@ export default function App() {
                   <button
                     onClick={() => {
                       sessionStorage.removeItem('isAdminAuthenticated');
+                      sessionStorage.removeItem('adminAuthToken');
                       setIsAdminAuthenticated(false);
                       setIsAdminPanelOpen(false);
+                      setAdminLoginStep('credentials');
+                      setAdmin2faCode('');
+                      setAdmin2faSentInfo(null);
+                      showToast('🔒 Session Administrateur déconnectée.');
                     }}
-                    className="px-2.5 py-1 bg-rose-600/20 text-rose-300 hover:bg-rose-600 hover:text-white border border-rose-500/20 rounded text-[10px] uppercase font-bold tracking-wider transition-all"
+                    className="px-2.5 py-1 bg-rose-600/20 text-rose-300 hover:bg-rose-600 hover:text-white border border-rose-500/20 rounded text-[10px] uppercase font-bold tracking-wider transition-all cursor-pointer"
                   >
                     Se Déconnecter
                   </button>
