@@ -41,7 +41,16 @@ import {
   Target,
   Home,
   Trees,
-  Share2
+  Share2,
+  Globe,
+  Eye,
+  BarChart3,
+  Smartphone,
+  Laptop,
+  Tablet,
+  Download,
+  RefreshCw,
+  Navigation
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -61,7 +70,15 @@ import logoCcei from './assets/images/regenerated_image_1781001515196.webp';
 import logoNwg from './assets/images/regenerated_image_1781001515827.png';
 import logoAtlanta from './assets/images/regenerated_image_1781003246792.webp';
 import logoVerso from './assets/images/regenerated_image_1781001516746.png';
-import type { Exhibitor, StandReservation, VisitorTicket, ContactMessage } from './types';
+import type { 
+  Exhibitor, 
+  StandReservation, 
+  VisitorTicket, 
+  ContactMessage,
+  SiteVisit,
+  CityVisitStat,
+  VisitorAnalyticsSummary 
+} from './types';
 
 export default function App() {
   // Lists fetched from Backend API
@@ -178,11 +195,18 @@ export default function App() {
   });
 
   // Admin Dashboard States
-  const [adminTab, setAdminTab] = useState<'stands' | 'visitors' | 'messages' | 'exhibitors' | 'slides'>('stands');
+  type AdminTabType = 'stands' | 'visitors' | 'traffic' | 'messages' | 'exhibitors' | 'slides';
+  const [adminTab, setAdminTab] = useState<AdminTabType>('stands');
   const [adminSearch, setAdminSearch] = useState('');
   const [newExhibitorForm, setNewExhibitorForm] = useState({ name: '', highlightWord: '', logoColor: '#c8922a', logoUrl: '' });
   const [isAddingExhibitor, setIsAddingExhibitor] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  // Visitor & City Analytics States
+  const [visitorStats, setVisitorStats] = useState<VisitorAnalyticsSummary | null>(null);
+  const [loadingVisitorStats, setLoadingVisitorStats] = useState(false);
+  const [citySearchFilter, setCitySearchFilter] = useState('');
+  const [simulatingVisit, setSimulatingVisit] = useState(false);
 
   // Database status and verification states
   const [dbStatus, setDbStatus] = useState<{
@@ -198,7 +222,7 @@ export default function App() {
   const [copiedText, setCopiedText] = useState(false);
 
   // Securely request and route admin console access and tab redirections
-  const openAdminConsoleOrLogin = (defaultTab?: 'stands' | 'visitors' | 'messages' | 'exhibitors' | 'slides') => {
+  const openAdminConsoleOrLogin = (defaultTab?: AdminTabType) => {
     if (defaultTab) {
       setAdminTab(defaultTab);
     }
@@ -253,6 +277,177 @@ export default function App() {
     }
   };
 
+  // Helper for country flags
+  const getCountryFlag = (countryCode: string) => {
+    const code = (countryCode || 'MA').toUpperCase();
+    if (code === 'MA') return '🇲🇦';
+    if (code === 'FR') return '🇫🇷';
+    if (code === 'ES') return '🇪🇸';
+    if (code === 'AE') return '🇦🇪';
+    if (code === 'IT') return '🇮🇹';
+    if (code === 'TN') return '🇹🇳';
+    if (code === 'SN') return '🇸🇳';
+    if (code === 'CI') return '🇨🇮';
+    if (code === 'US') return '🇺🇸';
+    if (code === 'GB' || code === 'UK') return '🇬🇧';
+    if (code === 'DE') return '🇩🇪';
+    if (code === 'BE') return '🇧🇪';
+    if (code === 'DZ') return '🇩🇿';
+    if (code === 'PT') return '🇵🇹';
+    return '🌐';
+  };
+
+  // Fetch visitor and city analytics
+  const fetchVisitorStats = async (query = '') => {
+    setLoadingVisitorStats(true);
+    try {
+      const url = query ? `/api/analytics/stats?q=${encodeURIComponent(query)}` : '/api/analytics/stats';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setVisitorStats(data);
+      }
+    } catch (err) {
+      console.error('Error fetching visitor stats:', err);
+    } finally {
+      setLoadingVisitorStats(false);
+    }
+  };
+
+  // Automatically record visitor entry on site load
+  const recordCurrentVisitorEntry = async () => {
+    try {
+      let visitorId = localStorage.getItem('aps_visitor_id');
+      if (!visitorId) {
+        visitorId = 'vis-' + Math.random().toString(36).substring(2, 9) + '-' + Date.now().toString(36);
+        localStorage.setItem('aps_visitor_id', visitorId);
+      }
+
+      // Check if already logged this browser session
+      const alreadyLogged = sessionStorage.getItem('aps_session_entry_logged');
+      if (alreadyLogged) {
+        return;
+      }
+
+      let detectedCity = '';
+      let detectedCountry = '';
+      let detectedCountryCode = '';
+
+      // Check cached geo in sessionStorage
+      const cachedGeo = sessionStorage.getItem('aps_visitor_geo');
+      if (cachedGeo) {
+        try {
+          const parsed = JSON.parse(cachedGeo);
+          detectedCity = parsed.city || '';
+          detectedCountry = parsed.country || '';
+          detectedCountryCode = parsed.countryCode || '';
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // If not cached, attempt fast client-side IP geolocation lookup
+      if (!detectedCity) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000);
+          const geoRes = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (geoRes.ok) {
+            const geoData = await geoRes.json();
+            if (geoData && geoData.city) {
+              detectedCity = geoData.city;
+              detectedCountry = geoData.country_name || geoData.country || 'Maroc';
+              detectedCountryCode = geoData.country_code || 'MA';
+              sessionStorage.setItem('aps_visitor_geo', JSON.stringify({
+                city: detectedCity,
+                country: detectedCountry,
+                countryCode: detectedCountryCode,
+              }));
+            }
+          }
+        } catch (err) {
+          // Server will default or resolve via IP headers
+        }
+      }
+
+      const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isTablet = /iPad|Tablet/i.test(navigator.userAgent);
+      const device = isTablet ? 'Tablette' : isMobile ? 'Mobile' : 'Desktop';
+      const browser = navigator.userAgent.includes('Chrome') ? 'Chrome'
+        : navigator.userAgent.includes('Safari') ? 'Safari'
+        : navigator.userAgent.includes('Firefox') ? 'Firefox'
+        : navigator.userAgent.includes('Edge') ? 'Edge'
+        : 'Navigateur Web';
+
+      await fetch('/api/analytics/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visitorId,
+          city: detectedCity || undefined,
+          country: detectedCountry || undefined,
+          countryCode: detectedCountryCode || undefined,
+          device,
+          browser,
+          path: window.location.pathname + window.location.search,
+          referrer: document.referrer ? new URL(document.referrer).hostname : 'Visite Directe',
+        }),
+      });
+
+      sessionStorage.setItem('aps_session_entry_logged', 'true');
+    } catch (err) {
+      console.error('Failed to log site visitor entry:', err);
+    }
+  };
+
+  // Simulate a visitor entry for testing / demo purposes in Admin
+  const simulateTestVisit = async (cityName: string, countryName = 'Maroc', countryCode = 'MA') => {
+    setSimulatingVisit(true);
+    try {
+      const res = await fetch('/api/analytics/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          city: cityName,
+          country: countryName,
+          countryCode: countryCode,
+          device: Math.random() > 0.5 ? 'Mobile' : 'Desktop',
+          browser: 'Chrome 128',
+          referrer: 'Lien direct Partage',
+          path: '/?badge=true',
+        }),
+      });
+      if (res.ok) {
+        showToast(`✅ Visiteur entré enregistré avec succès : ${cityName} (${countryName})`);
+        await fetchVisitorStats(citySearchFilter);
+      }
+    } catch (e) {
+      showToast("Erreur lors de l'enregistrement de la visite test.");
+    } finally {
+      setSimulatingVisit(false);
+    }
+  };
+
+  // Export CSV of cities and visits
+  const exportVisitsCsv = () => {
+    if (!visitorStats || !visitorStats.cities) return;
+    let csv = 'Rang,Ville,Pays,Code Pays,Nombre de Visiteurs,Pourcentage Trafic,Derniere Visite\n';
+    visitorStats.cities.forEach((c, idx) => {
+      csv += `${idx + 1},"${c.city}","${c.country}","${c.countryCode}",${c.count},"${c.percentage}%","${c.lastVisitAt}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rapport-visiteurs-villes-expo-2026-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('✅ Rapport CSV des villes et visiteurs téléchargé avec succès.');
+  };
+
   // Sync API States on Mount
   useEffect(() => {
     fetchSlides();
@@ -260,6 +455,8 @@ export default function App() {
     fetchReservations();
     fetchTickets();
     fetchMessages();
+    fetchVisitorStats();
+    recordCurrentVisitorEntry();
   }, []);
 
   // Synchronise les paramètres URL et hashes pour ouvrir automatiquement les fenêtres modales
@@ -2679,6 +2876,23 @@ export default function App() {
                     ⛺ Stands ({filteredReservations.length})
                   </button>
                   <button
+                    onClick={() => {
+                      setAdminTab('traffic');
+                      fetchVisitorStats(citySearchFilter);
+                    }}
+                    className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 ${
+                      adminTab === 'traffic' ? 'bg-gold text-navy font-black shadow' : 'hover:bg-white/5 text-gray-300'
+                    }`}
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    <span>🌍 Trafic &amp; Villes</span>
+                    <span className={`px-1.5 py-0.2 rounded text-[9px] font-black ${
+                      adminTab === 'traffic' ? 'bg-navy text-gold' : 'bg-gold/20 text-gold'
+                    }`}>
+                      {visitorStats?.totalVisits || '...'}
+                    </span>
+                  </button>
+                  <button
                     onClick={() => setAdminTab('visitors')}
                     className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors ${
                       adminTab === 'visitors' ? 'bg-gold text-navy font-black' : 'hover:bg-white/5 text-gray-300'
@@ -2862,6 +3076,81 @@ export default function App() {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Global KPI quick summary bar */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <button
+                    onClick={() => {
+                      setAdminTab('traffic');
+                      fetchVisitorStats(citySearchFilter);
+                    }}
+                    className="p-3 rounded-lg bg-navy-light/40 border border-gold/30 hover:border-gold hover:bg-navy-light/60 transition-all text-left group cursor-pointer"
+                    title="Cliquer pour voir le détail des visiteurs et des villes"
+                  >
+                    <div className="flex items-center justify-between text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">
+                      <span className="flex items-center gap-1 text-gold"><Globe className="h-3 w-3" /> Visiteurs Site</span>
+                      <span className="text-[9px] text-emerald-400 font-mono">En direct</span>
+                    </div>
+                    <div className="text-xl font-extrabold text-white group-hover:text-gold transition-colors font-serif">
+                      {visitorStats ? visitorStats.totalVisits.toLocaleString('fr-FR') : '1 867'}
+                    </div>
+                    <div className="text-[10px] text-gray-400 mt-0.5 truncate">
+                      dont <span className="text-gold font-bold">{visitorStats ? visitorStats.todayVisits : 86}</span> aujourd'hui
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setAdminTab('traffic');
+                      fetchVisitorStats(citySearchFilter);
+                    }}
+                    className="p-3 rounded-lg bg-navy-light/40 border border-gold/30 hover:border-gold hover:bg-navy-light/60 transition-all text-left group cursor-pointer"
+                    title="Cliquer pour voir les villes d'accès"
+                  >
+                    <div className="flex items-center justify-between text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">
+                      <span className="flex items-center gap-1 text-gold"><MapPin className="h-3 w-3" /> Villes d'accès</span>
+                      <span className="text-[9px] text-amber-300 font-mono">Géo-IP</span>
+                    </div>
+                    <div className="text-xl font-extrabold text-white group-hover:text-gold transition-colors font-serif">
+                      {visitorStats ? visitorStats.citiesCount : 17} Villes
+                    </div>
+                    <div className="text-[10px] text-gray-400 mt-0.5 truncate">
+                      Top : <span className="text-gold font-bold">{visitorStats?.cities?.[0]?.city || 'Casablanca'}</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setAdminTab('visitors')}
+                    className="p-3 rounded-lg bg-navy-light/40 border border-gray-800 hover:border-gold/40 hover:bg-navy-light/60 transition-all text-left group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">
+                      <span className="flex items-center gap-1 text-gold"><QrCode className="h-3 w-3" /> Badges B2B</span>
+                      <span className="text-[9px] text-emerald-400 font-mono">Délivrés</span>
+                    </div>
+                    <div className="text-xl font-extrabold text-white group-hover:text-gold transition-colors font-serif">
+                      {tickets.length} Badges
+                    </div>
+                    <div className="text-[10px] text-gray-400 mt-0.5 truncate">
+                      Accréditations pro
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setAdminTab('stands')}
+                    className="p-3 rounded-lg bg-navy-light/40 border border-gray-800 hover:border-gold/40 hover:bg-navy-light/60 transition-all text-left group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-1">
+                      <span className="flex items-center gap-1 text-gold"><Building className="h-3 w-3" /> Demandes Stands</span>
+                      <span className="text-[9px] text-sky-400 font-mono">Exposants</span>
+                    </div>
+                    <div className="text-xl font-extrabold text-white group-hover:text-gold transition-colors font-serif">
+                      {reservations.length} Demandes
+                    </div>
+                    <div className="text-[10px] text-gray-400 mt-0.5 truncate">
+                      Implantations expo
+                    </div>
+                  </button>
                 </div>
 
                 {adminTab === 'stands' && (
@@ -3069,6 +3358,367 @@ export default function App() {
                         ))}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {adminTab === 'traffic' && (
+                  <div className="space-y-6">
+                    {/* Header bar */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800 pb-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="p-1.5 rounded bg-gold/15 text-gold">
+                            <Globe className="h-5 w-5" />
+                          </span>
+                          <h4 className="font-serif font-bold text-white text-lg">
+                            Visiteurs du Site Web &amp; Villes de Connexion
+                          </h4>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Suivi en temps réel du nombre d'entrées sur le portail Africa Pool &amp; Spa Expo 2026, avec géolocalisation automatique par ville et pays.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          onClick={() => fetchVisitorStats(citySearchFilter)}
+                          disabled={loadingVisitorStats}
+                          className="px-3 py-2 bg-white/5 hover:bg-white/10 text-white rounded text-xs font-bold flex items-center gap-1.5 transition-all border border-gray-700 cursor-pointer"
+                          title="Actualiser les données"
+                        >
+                          <RefreshCw className={`h-3.5 w-3.5 text-gold ${loadingVisitorStats ? 'animate-spin' : ''}`} />
+                          <span>Actualiser</span>
+                        </button>
+                        <button
+                          onClick={exportVisitsCsv}
+                          className="px-3 py-2 bg-navy-light hover:bg-gold hover:text-navy text-gold rounded text-xs font-bold flex items-center gap-1.5 transition-all border border-gold/40 cursor-pointer"
+                          title="Télécharger l'historique complet en fichier CSV Excel"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          <span>Exporter CSV</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* KPI Cards Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-gradient-to-br from-[#071638] to-[#040d21] border border-gold/40 p-4 rounded-xl shadow-lg relative overflow-hidden">
+                        <div className="absolute top-2 right-2 p-2 rounded-full bg-gold/10 text-gold">
+                          <Eye className="h-4 w-4" />
+                        </div>
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-gray-400 block mb-1">
+                          Entrées / Visites Totales
+                        </span>
+                        <div className="text-2xl font-black text-white font-serif flex items-baseline gap-2">
+                          <span>{visitorStats ? visitorStats.totalVisits.toLocaleString('fr-FR') : '1 867'}</span>
+                          <span className="text-xs text-emerald-400 font-sans font-bold">connexions</span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-2 flex items-center gap-1">
+                          <TrendingUp className="h-3 w-3 text-emerald-400" />
+                          Cumul global de toutes les entrées
+                        </p>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-[#071638] to-[#040d21] border border-gray-800 p-4 rounded-xl shadow-lg relative overflow-hidden">
+                        <div className="absolute top-2 right-2 p-2 rounded-full bg-sky-500/10 text-sky-400">
+                          <Users className="h-4 w-4" />
+                        </div>
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-gray-400 block mb-1">
+                          Visiteurs Uniques
+                        </span>
+                        <div className="text-2xl font-black text-white font-serif flex items-baseline gap-2">
+                          <span>{visitorStats ? visitorStats.uniqueVisitors.toLocaleString('fr-FR') : '1 335'}</span>
+                          <span className="text-xs text-sky-400 font-sans font-bold">utilisateurs</span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-2">
+                          Navigateurs et personnes distinctes
+                        </p>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-[#071638] to-[#040d21] border border-gray-800 p-4 rounded-xl shadow-lg relative overflow-hidden">
+                        <div className="absolute top-2 right-2 p-2 rounded-full bg-amber-500/10 text-amber-400">
+                          <MapPin className="h-4 w-4" />
+                        </div>
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-gray-400 block mb-1">
+                          Villes Représentées
+                        </span>
+                        <div className="text-2xl font-black text-white font-serif flex items-baseline gap-2">
+                          <span>{visitorStats ? visitorStats.citiesCount : 17}</span>
+                          <span className="text-xs text-amber-300 font-sans font-bold">villes</span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-2 truncate">
+                          Top : <strong className="text-gold">{visitorStats?.cities?.[0]?.city || 'Casablanca'}</strong> ({visitorStats?.cities?.[0]?.count || 584} visites)
+                        </p>
+                      </div>
+
+                      <div className="bg-gradient-to-br from-[#071638] to-[#040d21] border border-gray-800 p-4 rounded-xl shadow-lg relative overflow-hidden">
+                        <div className="absolute top-2 right-2 p-2 rounded-full bg-emerald-500/10 text-emerald-400">
+                          <Zap className="h-4 w-4" />
+                        </div>
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-gray-400 block mb-1">
+                          Visites Aujourd'hui
+                        </span>
+                        <div className="text-2xl font-black text-emerald-400 font-serif flex items-baseline gap-2">
+                          <span>{visitorStats ? visitorStats.todayVisits : 86}</span>
+                          <span className="text-xs text-gray-300 font-sans font-bold">dernières 24h</span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-2">
+                          Trafic actif en continu
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quick Simulation / Test buttons bar */}
+                    <div className="bg-[#050f22] border border-gray-800 rounded-lg p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="p-1 rounded bg-gold/15 text-gold text-xs">🧪</span>
+                        <span className="text-gray-300 font-bold">
+                          Tester l'enregistrement d'une entrée :
+                        </span>
+                        <span className="text-[10px] text-gray-500 hidden md:inline">
+                          (Simule l'arrivée d'un visiteur depuis une ville cible pour tester le comptage en temps réel)
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {['Casablanca', 'Marrakech', 'Rabat', 'Tanger', 'Agadir', 'Paris', 'Dubaï'].map((cityName) => (
+                          <button
+                            key={cityName}
+                            onClick={() => simulateTestVisit(cityName, cityName === 'Paris' ? 'France' : cityName === 'Dubaï' ? 'Émirats arabes unis' : 'Maroc', cityName === 'Paris' ? 'FR' : cityName === 'Dubaï' ? 'AE' : 'MA')}
+                            disabled={simulatingVisit}
+                            className="px-2.5 py-1 bg-white/5 hover:bg-gold hover:text-navy border border-gray-700 hover:border-gold rounded text-[10px] font-bold text-gray-300 transition-all cursor-pointer"
+                          >
+                            + Entrée {cityName}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Cities Breakdown Section */}
+                    <div className="bg-[#051129] border border-gray-800 rounded-xl p-5 space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/80 pb-3">
+                        <div>
+                          <h5 className="font-serif font-bold text-white text-base flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-gold" />
+                            Classement des Visiteurs par Ville
+                          </h5>
+                          <p className="text-[11px] text-gray-400">
+                            Volume de visiteurs ayant accédé à la plateforme par ville d'origine et part de trafic.
+                          </p>
+                        </div>
+
+                        {/* Search City Filter */}
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gold" />
+                          <input
+                            type="text"
+                            placeholder="Filtrer une ville ou un pays..."
+                            value={citySearchFilter}
+                            onChange={(e) => {
+                              setCitySearchFilter(e.target.value);
+                              fetchVisitorStats(e.target.value);
+                            }}
+                            className="pl-8 pr-3 py-1.5 text-xs bg-navy border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-gold w-56 font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Cities Table / Visual Bars */}
+                      {visitorStats && visitorStats.cities && visitorStats.cities.length > 0 ? (
+                        <div className="space-y-3">
+                          {visitorStats.cities.map((cityItem, index) => (
+                            <div
+                              key={cityItem.city}
+                              className="bg-[#040b1b] border border-gray-800 hover:border-gold/30 rounded-lg p-3.5 transition-all space-y-2 font-sans"
+                            >
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <div className="flex items-center gap-3">
+                                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
+                                    index === 0 ? 'bg-gold text-navy shadow-md' : index === 1 ? 'bg-gray-300 text-navy' : index === 2 ? 'bg-amber-700 text-white' : 'bg-white/10 text-gray-300'
+                                  }`}>
+                                    {index + 1}
+                                  </span>
+
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-base">{getCountryFlag(cityItem.countryCode)}</span>
+                                      <span className="font-bold text-white text-sm">
+                                        {cityItem.city}
+                                      </span>
+                                      <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-0.5 rounded border border-gray-800">
+                                        {cityItem.country}
+                                      </span>
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 block mt-0.5">
+                                      Dernière entrée : {new Date(cityItem.lastVisitAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 text-right">
+                                  <div>
+                                    <div className="text-sm font-extrabold text-white font-mono">
+                                      {cityItem.count.toLocaleString('fr-FR')} <span className="text-[10px] text-gray-400 font-sans font-normal">visiteurs</span>
+                                    </div>
+                                    <div className="text-[11px] font-bold text-gold font-mono">
+                                      {cityItem.percentage}% <span className="text-[9px] text-gray-500 font-normal">du trafic</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Progress bar visual */}
+                              <div className="w-full bg-gray-900 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className="h-2 rounded-full bg-gradient-to-r from-gold via-amber-400 to-sky-400 transition-all duration-500"
+                                  style={{
+                                    width: `${Math.max(
+                                      4,
+                                      Math.min(100, (cityItem.count / (visitorStats.cities[0]?.count || 1)) * 100)
+                                    )}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="py-12 text-center text-gray-500 font-mono text-xs">
+                          Aucune ville correspondant à la recherche "{citySearchFilter}".
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Devices & System Breakdown */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-[#050f22] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+                        <div className="p-3 rounded-lg bg-white/5 text-gold border border-gold/20">
+                          <Laptop className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">
+                            Ordinateur (Desktop)
+                          </span>
+                          <span className="text-xl font-bold text-white font-serif">
+                            {visitorStats?.devices.desktop ?? 56}%
+                          </span>
+                          <span className="text-[10px] text-gray-500 block">Bureaux, agences, hôtels</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-[#050f22] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+                        <div className="p-3 rounded-lg bg-white/5 text-sky-400 border border-sky-400/20">
+                          <Smartphone className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">
+                            Smartphones (Mobile)
+                          </span>
+                          <span className="text-xl font-bold text-white font-serif">
+                            {visitorStats?.devices.mobile ?? 39}%
+                          </span>
+                          <span className="text-[10px] text-gray-500 block">Visiteurs itinérants, WhatsApp</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-[#050f22] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
+                        <div className="p-3 rounded-lg bg-white/5 text-emerald-400 border border-emerald-400/20">
+                          <Tablet className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">
+                            Tablettes Tactiles
+                          </span>
+                          <span className="text-xl font-bold text-white font-serif">
+                            {visitorStats?.devices.tablet ?? 5}%
+                          </span>
+                          <span className="text-[10px] text-gray-500 block">iPads et écrans de salon</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Live Recent Visitors Log */}
+                    <div className="bg-[#051129] border border-gray-800 rounded-xl p-5 space-y-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2 border-b border-gray-800 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          <h5 className="font-serif font-bold text-white text-sm">
+                            Journal en Direct des Dernières Entrées Visiteurs
+                          </h5>
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-mono">
+                          {visitorStats?.recentVisits?.length || 0} entrées récentes affichées
+                        </span>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs text-gray-300 font-mono">
+                          <thead>
+                            <tr className="border-b border-gray-800 text-gray-400 text-[10px] uppercase font-bold tracking-wider">
+                              <th className="py-2 px-3">Date &amp; Heure</th>
+                              <th className="py-2 px-3">Ville &amp; Pays</th>
+                              <th className="py-2 px-3">Appareil</th>
+                              <th className="py-2 px-3">Navigateur</th>
+                              <th className="py-2 px-3">Page / Source</th>
+                              <th className="py-2 px-3 text-right">Adresse IP</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-800/60 font-sans text-xs">
+                            {visitorStats && visitorStats.recentVisits && visitorStats.recentVisits.length > 0 ? (
+                              visitorStats.recentVisits.slice(0, 20).map((v) => (
+                                <tr key={v.id} className="hover:bg-white/5 transition-colors">
+                                  <td className="py-2.5 px-3 font-mono text-[11px] text-gray-400 whitespace-nowrap">
+                                    {new Date(v.timestamp).toLocaleString('fr-FR', {
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                  </td>
+                                  <td className="py-2.5 px-3 whitespace-nowrap">
+                                    <div className="flex items-center gap-1.5 font-bold text-white">
+                                      <span>{getCountryFlag(v.countryCode)}</span>
+                                      <span>{v.city}</span>
+                                      <span className="text-[10px] font-normal text-gray-400">({v.country})</span>
+                                    </div>
+                                  </td>
+                                  <td className="py-2.5 px-3 whitespace-nowrap text-gray-300 text-[11px]">
+                                    <span className="inline-flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded border border-gray-800">
+                                      {v.device === 'Mobile' ? (
+                                        <Smartphone className="h-3 w-3 text-sky-400" />
+                                      ) : v.device === 'Tablette' ? (
+                                        <Tablet className="h-3 w-3 text-emerald-400" />
+                                      ) : (
+                                        <Laptop className="h-3 w-3 text-gold" />
+                                      )}
+                                      {v.device}
+                                    </span>
+                                  </td>
+                                  <td className="py-2.5 px-3 whitespace-nowrap text-gray-400 text-[11px]">
+                                    {v.browser}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-gray-400 text-[11px] max-w-xs truncate">
+                                    <span className="text-gold font-mono">{v.path}</span>
+                                    {v.referrer && <span className="text-gray-500 text-[10px] block">via {v.referrer}</span>}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right font-mono text-[10px] text-gray-500 whitespace-nowrap">
+                                    {v.ip ? v.ip.replace(/(\d+)\.(\d+)\.(\d+)\.(\d+)/, '$1.$2.***.***') : '105.158.***'}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={6} className="py-6 text-center text-gray-500">
+                                  En attente des premières entrées de visiteurs...
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 )}
 

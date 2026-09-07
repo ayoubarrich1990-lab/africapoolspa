@@ -44,3 +44,41 @@ export interface ContactMessage {
   createdAt: string;
   read: boolean;
 }
+
+export interface SiteVisit {
+  id: string;
+  timestamp: string;
+  visitorId: string;
+  city: string;
+  country: string;
+  countryCode: string;
+  ip?: string;
+  device: 'Desktop' | 'Mobile' | 'Tablette';
+  browser: string;
+  referrer?: string;
+  path?: string;
+}
+
+export interface CityVisitStat {
+  city: string;
+  country: string;
+  countryCode: string;
+  count: number;
+  percentage: number;
+  lastVisitAt: string;
+}
+
+export interface VisitorAnalyticsSummary {
+  totalVisits: number;
+  uniqueVisitors: number;
+  todayVisits: number;
+  citiesCount: number;
+  cities: CityVisitStat[];
+  recentVisits: SiteVisit[];
+  devices: {
+    desktop: number;
+    mobile: number;
+    tablet: number;
+  };
+  dailyStats: { date: string; label: string; count: number }[];
+}

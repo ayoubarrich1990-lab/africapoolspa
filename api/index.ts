@@ -22,6 +22,7 @@ import {
 } from './db.js';
 import { generateBadgePdf } from './pdf.js';
 import { sendBadgeEmail } from './email.js';
+import { recordSiteVisit, getVisitorAnalyticsSummary, resetVisitorAnalytics } from './analytics.js';
 
 const app = express();
 
@@ -71,6 +72,69 @@ app.post('/api/slides', (req, res) => {
     res.json({ success: true, slides });
   } catch (err) {
     res.status(500).json({ error: 'Erreur lors de l’enregistrement des diapositives.' });
+  }
+});
+
+// 0.1 SITE VISITOR & CITY ANALYTICS API
+app.post('/api/analytics/visit', (req, res) => {
+  try {
+    const headerCity = (
+      req.headers['x-vercel-ip-city'] ||
+      req.headers['cf-ipcity'] ||
+      req.headers['x-appengine-city'] ||
+      ''
+    ) as string;
+
+    const headerCountry = (
+      req.headers['x-vercel-ip-country-name'] ||
+      req.headers['cf-ipcountry'] ||
+      ''
+    ) as string;
+
+    const clientIp = (
+      req.headers['x-forwarded-for'] ||
+      req.socket.remoteAddress ||
+      ''
+    ) as string;
+
+    const ip = typeof clientIp === 'string' ? clientIp.split(',')[0].trim() : '';
+
+    const visit = recordSiteVisit({
+      visitorId: req.body.visitorId,
+      city: req.body.city || (headerCity ? decodeURIComponent(headerCity) : undefined),
+      country: req.body.country || (headerCountry ? decodeURIComponent(headerCountry) : undefined),
+      countryCode: req.body.countryCode || (req.headers['cf-ipcountry'] as string) || undefined,
+      ip: ip || req.body.ip,
+      device: req.body.device,
+      browser: req.body.browser,
+      referrer: req.body.referrer,
+      path: req.body.path,
+    });
+
+    res.json({ success: true, visit });
+  } catch (err) {
+    console.error('Error recording visit:', err);
+    res.status(500).json({ error: 'Failed to record visit' });
+  }
+});
+
+app.get('/api/analytics/stats', (req, res) => {
+  try {
+    const q = req.query.q as string | undefined;
+    const stats = getVisitorAnalyticsSummary(q);
+    res.json(stats);
+  } catch (err) {
+    console.error('Error fetching analytics stats:', err);
+    res.status(500).json({ error: 'Failed to fetch analytics stats' });
+  }
+});
+
+app.post('/api/analytics/reset', (req, res) => {
+  try {
+    const stats = resetVisitorAnalytics();
+    res.json({ success: true, stats });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to reset analytics' });
   }
 });
 
