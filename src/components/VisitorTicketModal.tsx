@@ -10,7 +10,9 @@ import {
   Award, 
   Calendar, 
   MapPin, 
-  QrCode,
+  Barcode,
+  ShieldCheck,
+  BadgeCheck,
   Copy,
   Share2,
   CheckCircle2,
@@ -355,69 +357,141 @@ export default function VisitorTicketModal({ isOpen, onClose, onSuccess }: Visit
                   </p>
                 </div>
 
-                {/* VISITOR BADGE DRAWING */}
+                {/* MODERN VISITOR BADGE DRAWING (NO QR CODE) */}
                 <div 
-                  className="print-ticket border border-gold/40 rounded-lg overflow-hidden bg-gradient-to-br from-navy to-navy-light shadow-xl text-white max-w-sm mx-auto relative font-sans before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_bottom_right,rgba(200,146,42,0.15),transparent_60%)]"
+                  className="print-ticket border-2 border-gold/40 rounded-2xl overflow-hidden bg-gradient-to-b from-[#061226] via-[#091b3b] to-[#040c1a] shadow-2xl text-white max-w-sm mx-auto relative font-sans select-none"
                 >
-                  {/* Event Ribbon Badge top */}
-                  <div className="bg-gold px-4 py-2 flex items-center justify-between border-b border-white/10 uppercase font-bold tracking-widest text-[9px] text-navy">
-                    <span className="flex items-center gap-1"><Award className="h-3.5 w-3.5" /> ACCRÉDITATION B2B</span>
-                    <span>PASS 3 JOURS</span>
+                  {/* Subtle decorative background watermark / light sheen */}
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(200,146,42,0.18),transparent_50%)] pointer-events-none" />
+                  <div className="absolute -right-16 -top-16 w-36 h-36 rounded-full bg-gold/5 blur-2xl pointer-events-none" />
+                  <div className="absolute -left-16 -bottom-16 w-36 h-36 rounded-full bg-sky-500/5 blur-2xl pointer-events-none" />
+
+                  {/* Top Gold Accent Bar */}
+                  <div className="h-1.5 w-full bg-gradient-to-r from-[#b37e1f] via-[#e5b352] to-[#b37e1f]" />
+
+                  {/* Lanyard Cutout Slot Guide */}
+                  <div className="pt-3 pb-1 flex justify-center">
+                    <div className="w-14 h-2.5 rounded-full bg-black/70 border border-gold/40 shadow-inner flex items-center justify-center">
+                      <div className="w-8 h-1 rounded-full bg-white/20" />
+                    </div>
                   </div>
 
-                  {/* Body Info */}
-                  <div className="p-6 text-center space-y-4">
-                    <div className="space-y-0.5">
-                      <div className="text-[11px] uppercase font-extrabold tracking-wider text-white font-sans">
-                        SALON INTERNATIONAL DE LA PISCINE ET DU SPA
-                      </div>
-                      <div className="text-[9px] uppercase font-bold tracking-widest text-gold font-mono">
-                        AFRICA POOL & SPA EXPO 2026
-                      </div>
-                      <div className="text-[9px] text-white/50 tracking-wider font-mono">
-                        OCTOBRE 20-22, 2026 • OFEC CASABLANCA
-                      </div>
+                  {/* Accreditation Header Ribbon */}
+                  <div className="mx-4 mt-2 mb-3 bg-gradient-to-r from-navy via-[#0d2248] to-navy px-3 py-1.5 rounded-lg border border-gold/30 flex items-center justify-between text-[10px] font-bold tracking-wider">
+                    <span className="flex items-center gap-1.5 text-gold">
+                      <Award className="h-3.5 w-3.5 text-gold" /> ACCRÉDITATION B2B
+                    </span>
+                    <span className="text-white/90 bg-gold/20 px-2 py-0.5 rounded text-[9px] font-mono font-bold text-gold-light border border-gold/30">
+                      PASS 3 JOURS
+                    </span>
+                  </div>
+
+                  {/* Exhibition Branding */}
+                  <div className="px-5 text-center space-y-1">
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-gray-300">
+                      SALON INTERNATIONAL DE LA PISCINE ET DU SPA
+                    </div>
+                    <div className="text-xs uppercase font-extrabold tracking-widest text-gold font-serif">
+                      AFRICA POOL &amp; SPA EXPO 2026
+                    </div>
+                    <div className="text-[9px] text-gray-400 tracking-wider font-mono">
+                      20 - 22 OCTOBRE 2026 • OFEC CASABLANCA
+                    </div>
+                  </div>
+
+                  {/* Golden hairline divider */}
+                  <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto my-3" />
+
+                  {/* Visitor Profile Card (Frosted Glass Container) */}
+                  <div className="mx-4 bg-white/[0.04] border border-white/10 backdrop-blur-sm rounded-xl p-4 text-center shadow-lg relative space-y-2">
+                    <div className="inline-flex items-center gap-1 text-[9px] font-bold text-gold uppercase tracking-widest font-mono">
+                      <BadgeCheck className="h-3 w-3 text-gold" /> VISITEUR OFFICIEL
                     </div>
 
-                    <div className="w-20 h-0.5 bg-gold/30 mx-auto" />
+                    <h4 className="text-xl font-black uppercase tracking-tight text-white font-sans leading-tight">
+                      {generatedTicket?.firstName} {generatedTicket?.lastName}
+                    </h4>
 
-                    <div className="space-y-1">
-                      <h4 className="text-xl font-extrabold uppercase tracking-tight text-white font-sans">
-                        {generatedTicket?.firstName} {generatedTicket?.lastName}
-                      </h4>
-                      <p className="text-xs font-semibold text-gold font-mono tracking-wide">
-                        {generatedTicket?.jobTitle}
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-gold font-mono tracking-wide">
+                        {generatedTicket?.jobTitle || 'Professionnel'}
                       </p>
-                      <p className="text-xs text-white/70">
+                      <p className="text-xs font-medium text-slate-200">
                         {generatedTicket?.company}
                       </p>
                     </div>
 
-                    <div className="w-full h-px border-t border-dashed border-white/10 my-1" />
-
-                    <div className="flex justify-between items-center text-[9px] text-white/60 text-left px-2 font-mono">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 text-gold" />
-                        <span>MAR-JEU 09h - 18h</span>
+                    {generatedTicket?.sectorInterest && (
+                      <div className="pt-1">
+                        <span className="inline-block px-2.5 py-0.5 bg-gold/10 text-gold-light border border-gold/30 rounded-full text-[9px] font-mono">
+                          {generatedTicket.sectorInterest}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3 text-gold" />
-                        <span>OFEC, CASA</span>
+                    )}
+                  </div>
+
+                  {/* Modern Security & Access Identification Bar (No QR Code) */}
+                  <div className="mx-4 mt-3 bg-[#030a17]/90 border border-gold/25 rounded-xl p-3 text-center space-y-2">
+                    {/* Live Validation Pill */}
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-500/15 border border-emerald-500/30 rounded-full text-[9px] font-bold text-emerald-400 font-mono">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      ACCRÉDITATION VALIDÉE • ACCÈS COUPE-FILE
+                    </div>
+
+                    {/* Stylized Modern Barcode Strip */}
+                    <div className="bg-white rounded-md p-2 flex flex-col items-center justify-center shadow-sm">
+                      <div className="flex items-center justify-center gap-[2px] h-9 w-full px-2 overflow-hidden">
+                        {[2, 1, 3, 1, 2, 4, 1, 3, 2, 1, 1, 3, 2, 1, 4, 2, 1, 3, 1, 2, 1, 3, 4, 1, 2, 1, 3, 2, 1, 1, 4, 2, 1, 3, 2, 1, 3, 1, 2, 4, 1, 2, 3, 1].map((w, idx) => (
+                          <div
+                            key={idx}
+                            className="bg-[#050f22] h-full"
+                            style={{ width: `${w * 1.5}px` }}
+                          />
+                        ))}
+                      </div>
+                      <div className="text-[9px] font-mono font-black text-navy tracking-[0.25em] mt-1 uppercase">
+                        {generatedTicket?.ticketNumber}
                       </div>
                     </div>
 
-                    {/* QR Code container */}
-                    <div className="bg-white p-3 rounded inline-block shadow-lg mx-auto border-2 border-gold relative group">
-                      <QrCode className="h-24 w-24 text-navy stroke-[1.5]" />
-                      <div className="text-[8px] text-navy font-bold text-center mt-1 select-none font-mono">
-                        APS {generatedTicket?.ticketNumber.slice(-5)}
-                      </div>
-                    </div>
-
-                    <div className="text-[10px] text-white/40 tracking-widest font-mono">
-                      TICKET N° {generatedTicket?.ticketNumber}
+                    <div className="text-[9px] text-gray-400 tracking-wider font-mono">
+                      RÉFÉRENCE BADGE : <strong className="text-gold">{generatedTicket?.ticketNumber}</strong>
                     </div>
                   </div>
+
+                  {/* Event Practical Info Grid */}
+                  <div className="mx-4 my-3 grid grid-cols-2 gap-2 text-[9px] font-mono">
+                    <div className="bg-white/[0.03] border border-white/5 rounded-lg p-2 flex items-center gap-2">
+                      <Calendar className="h-3.5 w-3.5 text-gold shrink-0" />
+                      <div className="text-left leading-tight">
+                        <div className="text-white/50 text-[8px]">DATES &amp; HORAIRES</div>
+                        <div className="font-bold text-white">20-22 OCT 2026</div>
+                        <div className="text-gray-400 text-[8px]">09h00 - 18h00</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white/[0.03] border border-white/5 rounded-lg p-2 flex items-center gap-2">
+                      <MapPin className="h-3.5 w-3.5 text-gold shrink-0" />
+                      <div className="text-left leading-tight">
+                        <div className="text-white/50 text-[8px]">LIEU D'EXPOSITION</div>
+                        <div className="font-bold text-white">OFEC CASABLANCA</div>
+                        <div className="text-gray-400 text-[8px]">Maroc • Hall Principal</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Official Footer */}
+                  <div className="bg-[#020712] px-4 py-2 text-center border-t border-gold/20">
+                    <div className="text-[8px] text-gray-400 font-sans tracking-wide">
+                      PRÉSENTEZ CE BADGE À L’ACCUEIL PROFESSIONNEL DU SALON
+                    </div>
+                    <div className="text-[8px] text-gold/80 font-mono font-semibold mt-0.5">
+                      AFRICA POOL &amp; SPA EXPO • CASABLANCA 2026
+                    </div>
+                  </div>
+
+                  {/* Bottom Gold Accent Bar */}
+                  <div className="h-1.5 w-full bg-gradient-to-r from-[#b37e1f] via-[#e5b352] to-[#b37e1f]" />
                 </div>
 
                 {/* Printable Action buttons */}
