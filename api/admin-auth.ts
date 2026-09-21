@@ -95,12 +95,11 @@ export async function sendAdminVerificationCode(params: {
 
   return {
     success: true,
-    message: `Code de sécurité envoyé par e-mail à ${maskEmail(targetEmail)}.`,
+    message: `Code de vérification envoyé avec succès par e-mail.`,
     method: 'gmail',
     targetEmail,
     maskedEmail: maskEmail(targetEmail),
     expiresInSeconds: validityMinutes * 60,
-    emailDeliveryStatus: emailStatus,
   };
 }
 
