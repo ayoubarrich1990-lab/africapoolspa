@@ -142,7 +142,6 @@ export default function App() {
   const [admin2faLoading, setAdmin2faLoading] = useState(false);
   const [admin2faVerifying, setAdmin2faVerifying] = useState(false);
   const [admin2faError, setAdmin2faError] = useState('');
-  const [admin2faSuccessMsg, setAdmin2faSuccessMsg] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const [admin2faSentInfo, setAdmin2faSentInfo] = useState<{
     maskedEmail?: string;
@@ -150,7 +149,6 @@ export default function App() {
     emailDeliveryStatus?: string;
     expiresInSeconds?: number;
   } | null>(null);
-  const [showConfigDetails, setShowConfigDetails] = useState(false);
 
   // Cooldown counter
   useEffect(() => {
@@ -208,7 +206,6 @@ export default function App() {
   const sendVerificationCode = async () => {
     setAdmin2faLoading(true);
     setAdmin2faError('');
-    setAdmin2faSuccessMsg('');
     try {
       const res = await fetch('/api/admin/send-verification', {
         method: 'POST',
@@ -220,7 +217,6 @@ export default function App() {
       const data = await res.json();
       if (res.ok && data.success) {
         setAdmin2faSentInfo(data);
-        setAdmin2faSuccessMsg(data.message);
         setResendCooldown(30);
       } else {
         setAdmin2faError(data.error || "Impossible d'expédier le code de sécurité.");
@@ -293,6 +289,7 @@ export default function App() {
   // Background images for the hero slideshow (dynamic state with fallback)
   const defaultSlides = [bgLuxuryPool, bgDomedHall, bgCrowdHall];
   const [backgroundImages, setBackgroundImages] = useState<string[]>(defaultSlides);
+  const [slideOpacity, setSlideOpacity] = useState<number>(70);
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const [adminSlidesInput, setAdminSlidesInput] = useState('');
   const [isSavingSlides, setIsSavingSlides] = useState(false);
@@ -306,6 +303,9 @@ export default function App() {
           setBackgroundImages(data.slides);
         } else {
           setBackgroundImages(defaultSlides);
+        }
+        if (typeof data.opacity === 'number') {
+          setSlideOpacity(data.opacity);
         }
       }
     } catch (e) {
@@ -891,10 +891,10 @@ export default function App() {
       const res = await fetch('/api/slides', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slides: backgroundImages }),
+        body: JSON.stringify({ slides: backgroundImages, opacity: slideOpacity }),
       });
       if (res.ok) {
-        alert('Diaporama enregistré avec succès !');
+        alert('Diaporama et opacité enregistrés avec succès !');
         fetchSlides();
       } else {
         alert('Erreur lors de l’enregistrement du diaporama.');
@@ -914,10 +914,11 @@ export default function App() {
         const res = await fetch('/api/slides', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ slides: [] }), // send empty array to tell backend to clear
+          body: JSON.stringify({ slides: [], opacity: 70 }), // send empty array to tell backend to clear
         });
         if (res.ok) {
           setBackgroundImages(defaultSlides);
+          setSlideOpacity(70);
           setCurrentBgIndex(0);
           alert('Diaporama d’origine restauré avec succès !');
         }
@@ -956,38 +957,38 @@ export default function App() {
         id="navbar"
         className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-300 px-6 lg:px-12 flex items-center justify-between h-20 ${
           scrolled 
-            ? 'bg-navy/98 shadow-xl backdrop-blur-md border-b border-gold/35' 
-            : 'bg-navy/95 border-b border-gold/15'
+            ? 'bg-white/98 shadow-md backdrop-blur-md border-b border-sky-100' 
+            : 'bg-white/95 border-b border-sky-100/80 shadow-xs'
         }`}
       >
         <div id="nav-brand-area" className="flex items-center gap-4">
-          <Logo variant="horizontal" />
+          <Logo variant="horizontal" theme="water" />
         </div>
 
         {/* Desktop Links */}
         <ul className="hidden lg:flex items-center gap-6 xl:gap-8 font-sans" id="nav-desktop-menus">
           <li>
-            <a href="#hero" className="text-white/80 hover:text-gold text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-gold after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
+            <a href="#hero" className="text-slate-700 hover:text-sky-600 text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-sky-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
               Accueil
             </a>
           </li>
           <li>
-            <a href="#about" className="text-white/80 hover:text-gold text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-gold after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
+            <a href="#about" className="text-slate-700 hover:text-sky-600 text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-sky-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
               Pourquoi Visiter
             </a>
           </li>
           <li>
-            <a href="#secteurs" className="text-white/80 hover:text-gold text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-gold after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
+            <a href="#secteurs" className="text-slate-700 hover:text-sky-600 text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-sky-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
               Secteurs
             </a>
           </li>
           <li>
-            <a href="#exposants" className="text-white/80 hover:text-gold text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-gold after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
+            <a href="#exposants" className="text-slate-700 hover:text-sky-600 text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-sky-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
               Exposants
             </a>
           </li>
           <li>
-            <a href="#contact-section" className="text-white/80 hover:text-gold text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-gold after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
+            <a href="#contact-section" className="text-slate-700 hover:text-sky-600 text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-sky-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
               Contact
             </a>
           </li>
@@ -998,7 +999,7 @@ export default function App() {
               <button 
                 id="admin-console-trigger-nav"
                 onClick={() => setIsAdminPanelOpen(true)}
-                className="px-3 py-1.5 rounded bg-white/10 text-gold hover:bg-gold hover:text-navy text-[10px] font-extrabold uppercase tracking-widest border border-gold/45 transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-600 hover:text-white text-[10px] font-extrabold uppercase tracking-widest border border-sky-200 transition-all flex items-center gap-1.5"
               >
                 <Sliders className="h-3.5 w-3.5" /> ⚙️ Admin Console
               </button>
@@ -1009,10 +1010,10 @@ export default function App() {
             <button 
               id="share-badge-trigger-nav"
               onClick={copyBadgeRegistrationLink}
-              className="px-3 py-1.5 rounded bg-white/10 text-white hover:bg-gold hover:text-navy text-xs font-bold uppercase tracking-wider border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 text-xs font-bold uppercase tracking-wider border border-sky-200 transition-all flex items-center gap-1.5 cursor-pointer"
               title="Copier le lien d'inscription badge pour vos contacts"
             >
-              <Share2 className="h-3.5 w-3.5 text-gold" />
+              <Share2 className="h-3.5 w-3.5 text-sky-600" />
               <span>Lien Badge B2B</span>
             </button>
           </li>
@@ -1021,7 +1022,7 @@ export default function App() {
             <button 
               id="reserver-stand-trigger-nav"
               onClick={() => setIsStandModalOpen(true)}
-              className="px-4 py-2 bg-gold text-white text-xs font-bold uppercase tracking-wider rounded border border-gold hover:bg-gold-light hover:border-gold-light shadow hover:shadow-lg transition-all"
+              className="px-4 py-2 bg-sky-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg border border-sky-600 hover:bg-sky-700 hover:border-sky-700 shadow-sm hover:shadow-md transition-all cursor-pointer"
             >
               Réserver un Stand
             </button>
@@ -1033,7 +1034,7 @@ export default function App() {
           {isAdminAuthenticated && (
             <button 
               onClick={() => setIsAdminPanelOpen(!isAdminPanelOpen)}
-              className="p-1.5 text-gold border border-gold/30 rounded bg-navy-light/60"
+              className="p-1.5 text-sky-700 border border-sky-200 rounded-lg bg-sky-50"
               title="Console Admin"
             >
               <Sliders className="h-4 w-4" />
@@ -1042,13 +1043,13 @@ export default function App() {
           
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="text-white hover:text-gold flex flex-col gap-1.5 focus:outline-none p-1.5"
+            className="text-slate-800 hover:text-sky-600 flex flex-col gap-1.5 focus:outline-none p-1.5"
             aria-label="Toggle menu"
             id="mobile-hamburger-btn"
           >
-            <span className={`w-6 h-0.5 bg-white transition-transform ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-            <span className={`w-6 h-0.5 bg-white transition-opacity ${isMobileMenuOpen ? 'opacity-0' : ''}`} />
-            <span className={`w-6 h-0.5 bg-white transition-transform ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+            <span className={`w-6 h-0.5 bg-slate-800 transition-transform ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+            <span className={`w-6 h-0.5 bg-slate-800 transition-opacity ${isMobileMenuOpen ? 'opacity-0' : ''}`} />
+            <span className={`w-6 h-0.5 bg-slate-800 transition-transform ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
           </button>
         </div>
       </nav>
@@ -1060,42 +1061,42 @@ export default function App() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden fixed top-20 left-0 right-0 bg-navy text-white z-[999] border-b border-gold/30 shadow-2xl overflow-hidden"
+            className="lg:hidden fixed top-20 left-0 right-0 bg-white text-slate-800 z-[999] border-b border-sky-100 shadow-2xl overflow-hidden"
             id="mobile-drawer"
           >
             <div className="px-6 py-6 space-y-4">
               <a 
                 href="#hero" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-white/95 text-sm font-bold uppercase tracking-wider border-b border-white/5 pb-2"
+                className="block text-slate-800 hover:text-sky-600 text-sm font-bold uppercase tracking-wider border-b border-slate-100 pb-2"
               >
                 Accueil
               </a>
               <a 
                 href="#about" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-white/95 text-sm font-bold uppercase tracking-wider border-b border-white/5 pb-2"
+                className="block text-slate-800 hover:text-sky-600 text-sm font-bold uppercase tracking-wider border-b border-slate-100 pb-2"
               >
                 Pourquoi Visiter
               </a>
               <a 
                 href="#secteurs" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-white/95 text-sm font-bold uppercase tracking-wider border-b border-white/5 pb-2"
+                className="block text-slate-800 hover:text-sky-600 text-sm font-bold uppercase tracking-wider border-b border-slate-100 pb-2"
               >
                 Secteurs
               </a>
               <a 
                 href="#exposants" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-white/95 text-sm font-bold uppercase tracking-wider border-b border-white/5 pb-2"
+                className="block text-slate-800 hover:text-sky-600 text-sm font-bold uppercase tracking-wider border-b border-slate-100 pb-2"
               >
                 Exposants
               </a>
               <a 
                 href="#contact-section" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block text-white/95 text-sm font-bold uppercase tracking-wider border-b border-white/5 pb-2"
+                className="block text-slate-800 hover:text-sky-600 text-sm font-bold uppercase tracking-wider border-b border-slate-100 pb-2"
               >
                 Contact
               </a>
@@ -1106,7 +1107,7 @@ export default function App() {
                     setIsMobileMenuOpen(false);
                     setIsStandModalOpen(true);
                   }}
-                  className="w-full px-4 py-3 bg-gold text-white text-xs font-bold uppercase tracking-wider rounded text-center"
+                  className="w-full px-4 py-3 bg-sky-600 text-white text-xs font-bold uppercase tracking-wider rounded-lg text-center shadow-xs"
                 >
                   Stand Exposant
                 </button>
@@ -1115,7 +1116,7 @@ export default function App() {
                     setIsMobileMenuOpen(false);
                     setIsTicketModalOpen(true);
                   }}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 text-white text-xs font-bold uppercase tracking-wider rounded text-center hover:bg-white/15"
+                  className="w-full px-4 py-3 bg-sky-50 border border-sky-200 text-sky-700 text-xs font-bold uppercase tracking-wider rounded-lg text-center hover:bg-sky-100"
                 >
                   Visiteur Ticket
                 </button>
@@ -1126,7 +1127,7 @@ export default function App() {
                   setIsMobileMenuOpen(false);
                   copyBadgeRegistrationLink();
                 }}
-                className="w-full py-2.5 bg-white/5 border border-gold/40 text-gold font-bold text-xs uppercase tracking-widest rounded text-center flex items-center justify-center gap-2 hover:bg-gold hover:text-navy transition-all"
+                className="w-full py-2.5 bg-sky-50 border border-sky-200 text-sky-700 font-bold text-xs uppercase tracking-widest rounded-lg text-center flex items-center justify-center gap-2 hover:bg-sky-600 hover:text-white transition-all"
               >
                 <Share2 className="h-3.5 w-3.5" /> Copier le Lien d'Inscription Badge
               </button>
@@ -1137,9 +1138,9 @@ export default function App() {
                     setIsMobileMenuOpen(false);
                     setIsAdminPanelOpen(true);
                   }}
-                  className="w-full py-2.5 bg-navy-light text-gold font-bold text-xs uppercase tracking-widest rounded border border-gold/30 text-center flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-widest rounded-lg border border-slate-200 text-center flex items-center justify-center gap-2"
                 >
-                  <Sliders className="h-3.5 w-3.5" /> Ouvrir Console Administrateur
+                  <Sliders className="h-3.5 w-3.5 text-sky-600" /> Ouvrir Console Administrateur
                 </button>
               )}
             </div>
@@ -1148,9 +1149,12 @@ export default function App() {
       </AnimatePresence>
 
       {/* ===== HERO SECTION ===== */}
-      <section className="min-h-screen relative bg-navy flex items-center pt-24 pb-12 overflow-hidden" id="hero">
-        {/* Sliding Background Images with smooth transitions */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+      <section className="min-h-screen relative bg-slate-100 flex items-center pt-28 pb-16 overflow-hidden" id="hero">
+        {/* Sliding Background Images with smooth transitions and luminous airy overlay */}
+        <div 
+          className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none transition-opacity duration-700"
+          style={{ opacity: Math.max(0.1, Math.min(1, (slideOpacity || 70) / 100)) }}
+        >
           <AnimatePresence mode="popLayout">
             <motion.div
               key={currentBgIndex}
@@ -1161,45 +1165,48 @@ export default function App() {
               className="absolute inset-0 bg-cover bg-center"
               style={{
                 backgroundImage: `url(${backgroundImages[currentBgIndex]})`,
-                filter: 'saturate(1.1) contrast(1.1) brightness(0.4)',
+                filter: 'saturate(1.15) contrast(1.05) brightness(1.02)',
               }}
             />
           </AnimatePresence>
         </div>
         
-        {/* Ambient Dark Gradient Overlay */}
+        {/* Ambient Luminous Water & White Gradient Overlay */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none select-none" 
           style={{ 
-            background: 'linear-gradient(to bottom, rgba(5, 10, 47, 0.2) 0%, rgba(5, 10, 47, 0.7) 100%)',
+            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(240, 249, 255, 0.35) 35%, rgba(240, 249, 255, 0.40) 65%, rgba(255, 255, 255, 0.90) 100%)',
           }} 
         />
+
+        {/* Luminous water-blue ambient glow in the center */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[380px] bg-sky-400/20 blur-[100px] rounded-full pointer-events-none z-0" />
         
-        <div className="container mx-auto px-6 lg:px-12 relative z-10 w-full flex flex-col items-center justify-center py-12 text-center">
+        <div className="container mx-auto px-6 lg:px-12 relative z-10 w-full flex flex-col items-center justify-center py-8 text-center">
           
-          <div className="max-w-4xl space-y-6 text-center flex flex-col items-center" id="hero-left-col">
-            <span className="inline-block px-3 py-1 bg-gold/10 border border-gold/40 text-gold text-[10px] font-bold tracking-widest uppercase rounded">
-              💎 Édition Spéciale — Leadership &amp; Innovation
+          <div className="max-w-4xl space-y-6 text-center flex flex-col items-center p-6 sm:p-10 rounded-3xl bg-white/85 backdrop-blur-md border border-white/90 shadow-2xl shadow-sky-950/10" id="hero-left-col">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-sky-50 border border-sky-200 text-sky-700 text-xs font-bold tracking-widest uppercase rounded-full shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+              Édition Spéciale — Leadership &amp; Innovation
             </span>
 
-            <h1 className="font-serif text-white tracking-tight leading-none text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black">
-              AFRICA <br />
-              <span className="text-gold">POOL &amp; SPA</span> <br />
-              EXPO <span className="text-gold">2026</span>
-            </h1>
+            {/* Central Official Brand Logo (Replaces raw text with user's official logo in water blue) */}
+            <div className="w-full my-2 flex justify-center">
+              <Logo variant="hero" theme="water" />
+            </div>
 
-            <p className="text-gray-300 text-sm sm:text-base md:text-lg max-w-xl leading-relaxed font-sans mx-auto">
+            <p className="text-slate-600 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed font-sans mx-auto font-medium">
               Le rendez-vous unique des infrastructures aquatiques, de la domotique et du bien-être pour l'industrie hôtelière et touristique en pleine expansion sur le continent africain.
             </p>
 
-            <div className="space-y-3 pt-2 text-center">
-              <div className="flex items-center gap-3 text-white text-sm sm:text-base justify-center">
-                <Calendar className="h-5 w-5 text-gold flex-shrink-0" />
-                <span><strong>20 au 22 Octobre 2026</strong> — Sessions professionnelles B2B</span>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 text-slate-700 text-xs sm:text-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/95 border border-sky-100 shadow-xs backdrop-blur-xs">
+                <Calendar className="h-4 w-4 text-sky-600 flex-shrink-0" />
+                <span><strong className="text-slate-900">20 au 22 Octobre 2026</strong> — Sessions professionnelles B2B</span>
               </div>
-              <div className="flex items-center gap-3 text-white text-sm sm:text-base justify-center">
-                <MapPin className="h-5 w-5 text-gold flex-shrink-0" />
-                <span><strong>OFEC</strong> — Office des Foires et Expositions de Casablanca, Maroc</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/95 border border-sky-100 shadow-xs backdrop-blur-xs">
+                <MapPin className="h-4 w-4 text-sky-600 flex-shrink-0" />
+                <span><strong className="text-slate-900">OFEC</strong> — Casablanca, Maroc</span>
               </div>
             </div>
 
@@ -1207,24 +1214,24 @@ export default function App() {
               <button
                 id="btn-main-reserve-stand"
                 onClick={() => setIsStandModalOpen(true)}
-                className="px-6 py-4 bg-gold text-white font-extrabold text-xs sm:text-sm uppercase tracking-widest rounded shadow-xl hover:bg-gold-light hover:-translate-y-0.5 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
+                className="px-7 py-4 bg-sky-600 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-sky-600/20 hover:bg-sky-700 hover:-translate-y-0.5 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>S'enregistrer comme Exposant</span> <ChevronRight className="h-4 w-4" />
               </button>
               <button
                 id="btn-main-visitor-badge"
                 onClick={() => setIsTicketModalOpen(true)}
-                className="px-6 py-4 bg-white/10 border border-white/20 text-white font-extrabold text-xs sm:text-sm uppercase tracking-widest rounded hover:bg-white/15 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
+                className="px-7 py-4 bg-white border-2 border-sky-600 text-sky-700 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl hover:bg-sky-50 shadow-xs transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Obtenir mon e-Badge Gratuit</span>
               </button>
               <button
                 id="btn-main-share-badge"
                 onClick={copyBadgeRegistrationLink}
-                className="px-5 py-4 bg-navy-light/90 border border-gold/40 text-gold hover:bg-gold hover:text-navy font-bold text-xs sm:text-sm uppercase tracking-wider rounded transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
+                className="px-5 py-4 bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
                 title="Copier le lien direct d'inscription pour l'envoyer à vos contacts"
               >
-                <Share2 className="h-4 w-4" />
+                <Share2 className="h-4 w-4 text-sky-600" />
                 <span>Partager le lien d'inscription</span>
               </button>
             </div>
@@ -1234,27 +1241,27 @@ export default function App() {
         {/* Slide Navigation Arrows */}
         <button
           onClick={() => setCurrentBgIndex((prev) => (prev - 1 + backgroundImages.length) % backgroundImages.length)}
-          className="absolute left-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-navy/40 hover:bg-gold hover:text-navy text-white transition-all pointer-events-auto cursor-pointer border border-white/10 hover:border-gold md:flex hidden hover:scale-105"
+          className="absolute left-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/90 hover:bg-sky-600 hover:text-white text-sky-700 transition-all pointer-events-auto cursor-pointer border border-sky-200 shadow-md md:flex hidden hover:scale-105"
           aria-label="Slide Précédent"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <button
           onClick={() => setCurrentBgIndex((prev) => (prev + 1) % backgroundImages.length)}
-          className="absolute right-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-navy/40 hover:bg-gold hover:text-navy text-white transition-all pointer-events-auto cursor-pointer border border-white/10 hover:border-gold md:flex hidden hover:scale-105"
+          className="absolute right-6 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/90 hover:bg-sky-600 hover:text-white text-sky-700 transition-all pointer-events-auto cursor-pointer border border-sky-200 shadow-md md:flex hidden hover:scale-105"
           aria-label="Slide Suivant"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
 
         {/* Slide Indicator Dots */}
-        <div className="absolute bottom-8 left-0 right-0 z-20 flex justify-center gap-3">
+        <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center gap-3">
           {backgroundImages.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentBgIndex(idx)}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 pointer-events-auto cursor-pointer ${
-                currentBgIndex === idx ? 'bg-gold w-8' : 'bg-white/35 hover:bg-white/60'
+              className={`h-2.5 rounded-full transition-all duration-300 pointer-events-auto cursor-pointer ${
+                currentBgIndex === idx ? 'bg-sky-600 w-8' : 'bg-sky-200 hover:bg-sky-300 w-2.5'
               }`}
               title={`Slide ${idx + 1}`}
             />
@@ -1263,28 +1270,28 @@ export default function App() {
       </section>
 
       {/* ===== STATISTICS BAR ===== */}
-      <section className="bg-navy py-12 border-y border-gold/30" id="stats-banner">
+      <section className="bg-white py-12 border-y border-sky-100 shadow-xs" id="stats-banner">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
             <div className="space-y-1">
-              <div className="text-3xl md:text-4xl font-serif font-black text-gold">300+</div>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Exposants Prévus</p>
+              <div className="text-3xl md:text-4xl font-serif font-black text-sky-600">300+</div>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Exposants Prévus</p>
             </div>
             <div className="space-y-1">
-              <div className="text-3xl md:text-4xl font-serif font-black text-gold">8 000+</div>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Visiteurs B2B</p>
+              <div className="text-3xl md:text-4xl font-serif font-black text-sky-600">8 000+</div>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Visiteurs B2B</p>
             </div>
             <div className="space-y-1 border-t md:border-t-0 pt-4 md:pt-0">
-              <div className="text-3xl md:text-4xl font-serif font-black text-gold">30+</div>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Pays d'Afrique & UE</p>
+              <div className="text-3xl md:text-4xl font-serif font-black text-sky-600">30+</div>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Pays d'Afrique & UE</p>
             </div>
             <div className="space-y-1 border-t md:border-t-0 pt-4 md:pt-0">
-              <div className="text-3xl md:text-4xl font-serif font-black text-gold">15 000 m²</div>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Surfaces Disponibles</p>
+              <div className="text-3xl md:text-4xl font-serif font-black text-sky-600">15 000 m²</div>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Surfaces Disponibles</p>
             </div>
             <div className="space-y-1 col-span-2 md:col-span-1 border-t md:border-t-0 pt-4 md:pt-0">
-              <div className="text-3xl md:text-4xl font-serif font-black text-emerald-400">100%</div>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Échanges Réseau B2B</p>
+              <div className="text-3xl md:text-4xl font-serif font-black text-sky-500">100%</div>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Échanges Réseau B2B</p>
             </div>
           </div>
         </div>
@@ -1883,25 +1890,25 @@ export default function App() {
       </section>
 
       {/* ===== SECTION 4: INNOVATION SHOWCASE ===== */}
-      <section className="bg-navy py-24 text-white relative overflow-hidden border-t border-b border-gold/20" id="innovations">
+      <section className="bg-slate-50/60 py-24 text-slate-900 relative overflow-hidden border-t border-b border-sky-100" id="innovations">
         {/* Decorative backdrop gradients */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gold/5 blur-3xl rounded-full" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500/5 blur-3xl rounded-full" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-sky-200/30 blur-3xl rounded-full" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-200/20 blur-3xl rounded-full" />
 
         <div className="container mx-auto px-6 lg:px-12 relative z-10">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">ART DE VIVRE EN EXTÉRIEUR</span>
-            <h2 className="font-serif text-white text-3xl sm:text-4xl md:text-5xl font-black">
-              Les Innovations du Secteur : <span className="text-gold">Outdoor Luxury</span>
+            <span className="text-xs uppercase font-extrabold tracking-widest text-sky-600 font-mono">ART DE VIVRE EN EXTÉRIEUR</span>
+            <h2 className="font-serif text-slate-900 text-3xl sm:text-4xl md:text-5xl font-black">
+              Les Innovations du Secteur : <span className="text-sky-600">Outdoor Luxury</span>
             </h2>
-            <p className="text-gray-300 font-sans max-w-2xl mx-auto text-sm sm:text-base">
+            <p className="text-slate-600 font-sans max-w-2xl mx-auto text-sm sm:text-base">
               Plongez dans l'alliance du design de luxe et de la technologie environnementale pour sublimer vos terrasses et zones bien-être hôtelières.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             {/* Main spotlight item (7 cols) */}
-            <div className="lg:col-span-7 bg-[#0a1f44] border border-gold/20 rounded-2xl overflow-hidden flex flex-col justify-between group h-full">
+            <div className="lg:col-span-7 bg-white border border-sky-100 rounded-2xl overflow-hidden flex flex-col justify-between group h-full shadow-sm hover:shadow-md transition-shadow">
               <div className="relative h-96 overflow-hidden">
                 <img 
                   src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1000&auto=format&fit=crop&q=80" 
@@ -1909,9 +1916,9 @@ export default function App() {
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a1f44] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6 text-left">
-                  <span className="px-2.5 py-1 bg-gold text-navy rounded text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">
+                  <span className="px-2.5 py-1 bg-sky-600 text-white rounded text-[10px] font-bold uppercase tracking-wider mb-2 inline-block shadow-xs">
                     CONGRES DE L'INNOVATION
                   </span>
                   <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">
@@ -1920,24 +1927,24 @@ export default function App() {
                 </div>
               </div>
               <div className="p-8 text-left space-y-4 flex-1 flex flex-col justify-between">
-                <p className="text-sm text-gray-300 leading-relaxed font-sans">
+                <p className="text-sm text-slate-600 leading-relaxed font-sans">
                   Une immersion complète dans les infrastructures de piscines intelligentes à débordement de luxe, spas de relaxation sensoriels, pergolas bioclimatiques motorisées, et cuisines d'extérieur pour le secteur résidentiel et hôtelier haut de gamme en Afrique.
                 </p>
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5 text-xs text-gray-400">
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 text-xs text-slate-600">
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-gold" />
+                    <Check className="h-4 w-4 text-sky-600" />
                     <span>Conception sur mesure</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-gold" />
+                    <Check className="h-4 w-4 text-sky-600" />
                     <span>Matériaux haute technologie</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-gold" />
+                    <Check className="h-4 w-4 text-sky-600" />
                     <span>Régulation connectée par IA</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-gold" />
+                    <Check className="h-4 w-4 text-sky-600" />
                     <span>Basse consommation thermique</span>
                   </div>
                 </div>
@@ -1947,7 +1954,7 @@ export default function App() {
             {/* Grid of details (5 cols) */}
             <div className="lg:col-span-5 flex flex-col justify-between gap-6 h-full">
               {/* Card 1: Wellness */}
-              <div className="bg-[#0a1f44] border border-gold/20 rounded-2xl p-6 flex gap-4 text-left group hover:border-gold/50 transition-colors">
+              <div className="bg-white border border-sky-100 rounded-2xl p-6 flex gap-4 text-left group hover:border-sky-300 shadow-xs transition-all">
                 <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 relative">
                   <img 
                     src="https://images.unsplash.com/photo-1544816155-12df9643f363?w=300&auto=format&fit=crop&q=80" 
@@ -1957,15 +1964,15 @@ export default function App() {
                   />
                 </div>
                 <div className="flex-1 space-y-2">
-                  <h4 className="font-serif font-bold text-white text-base">Spas & Saunas Intelligents</h4>
-                  <p className="text-xs text-gray-400 leading-relaxed">
+                  <h4 className="font-serif font-bold text-slate-900 text-base">Spas & Saunas Intelligents</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     Découvrez les cabines de sauna infrarouge à faible consommation, spas de nage à contre-courant et équipements de bien-être haut de gamme.
                   </p>
                 </div>
               </div>
 
               {/* Card 2: Pergolas */}
-              <div className="bg-[#0a1f44] border border-gold/20 rounded-2xl p-6 flex gap-4 text-left group hover:border-gold/50 transition-colors">
+              <div className="bg-white border border-sky-100 rounded-2xl p-6 flex gap-4 text-left group hover:border-sky-300 shadow-xs transition-all">
                 <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 relative">
                   <img 
                     src="https://images.unsplash.com/photo-1613977257363-707ba9348227?w=300&auto=format&fit=crop&q=80" 
@@ -1975,15 +1982,15 @@ export default function App() {
                   />
                 </div>
                 <div className="flex-1 space-y-2">
-                  <h4 className="font-serif font-bold text-white text-base">Pergolas & Mobilier de créateurs</h4>
-                  <p className="text-xs text-gray-400 leading-relaxed">
+                  <h4 className="font-serif font-bold text-slate-900 text-base">Pergolas & Mobilier de créateurs</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     Pergolas bioclimatiques avec stations de recharge solaire, éclairages d'ambiance LED intégrés et canapés d'extérieur résistants.
                   </p>
                 </div>
               </div>
 
               {/* Card 3: Ecology */}
-              <div className="bg-[#0a1f44] border border-gold/20 rounded-2xl p-6 flex gap-4 text-left group hover:border-gold/50 transition-colors">
+              <div className="bg-white border border-sky-100 rounded-2xl p-6 flex gap-4 text-left group hover:border-sky-300 shadow-xs transition-all">
                 <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 relative">
                   <img 
                     src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=300&auto=format&fit=crop&q=80" 
@@ -1993,8 +2000,8 @@ export default function App() {
                   />
                 </div>
                 <div className="flex-1 space-y-2">
-                  <h4 className="font-serif font-bold text-white text-base">Traitement d'Eau Éco-Intelligent</h4>
-                  <p className="text-xs text-gray-400 leading-relaxed">
+                  <h4 className="font-serif font-bold text-slate-900 text-base">Traitement d'Eau Éco-Intelligent</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     Systèmes d'hydrolyse pour désinfection bio sans chlore, filtres à sable de verre recyclé autonettoyants et pompes autonomes solaires.
                   </p>
                 </div>
@@ -2003,42 +2010,42 @@ export default function App() {
           </div>
         </div>
       </section>
-      <section className="bg-navy py-20 text-white relative overflow-hidden" id="opportunities">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-15 pointer-events-none select-none">
-          <QrCode className="w-full h-full text-gold stroke-[0.1]" />
+      <section className="bg-white py-20 text-slate-900 relative overflow-hidden border-b border-sky-100" id="opportunities">
+        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-5 pointer-events-none select-none">
+          <QrCode className="w-full h-full text-sky-600 stroke-[0.1]" />
         </div>
         <div className="container mx-auto px-6 lg:px-12 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           <div className="lg:col-span-6 space-y-6 text-left">
-            <span className="text-xs font-mono font-bold text-gold uppercase tracking-widest">FILM / APERÇU OFFICIEL DE L’EXPO</span>
-            <h3 className="font-serif text-3xl sm:text-4xl font-extrabold text-white">
-              Une Plateforme <span className="text-gold">Multinationale</span> au Cœur de Casablanca
+            <span className="text-xs font-mono font-bold text-sky-600 uppercase tracking-widest">FILM / APERÇU OFFICIEL DE L’EXPO</span>
+            <h3 className="font-serif text-3xl sm:text-4xl font-extrabold text-slate-900">
+              Une Plateforme <span className="text-sky-600">Multinationale</span> au Cœur de Casablanca
             </h3>
             
-            <p className="text-gray-300 leading-relaxed font-sans text-sm sm:text-base">
+            <p className="text-slate-600 leading-relaxed font-sans text-sm sm:text-base">
               L’Office des Foires et Expositions de Casablanca (OFEC) accueille ce sommet pour offrir des liaisons directes de négoce. En tant que hub financier nord-africain, le Maroc favorise les opportunités de réseaux exceptionnels.
             </p>
 
             <div className="space-y-4 pt-2">
               <div className="flex items-start gap-3">
-                <span className="p-1 rounded bg-gold/20 text-gold text-xs font-bold font-mono mt-0.5 select-none">01</span>
+                <span className="p-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 text-xs font-bold font-mono mt-0.5 select-none">01</span>
                 <div>
-                  <h5 className="font-bold text-white text-sm">Rendez-vous pré-programmés (Formule B2B Match)</h5>
-                  <p className="text-xs text-gray-400">Pour garantir des entretiens fructueux avec des investisseurs stratégiques.</p>
+                  <h5 className="font-bold text-slate-900 text-sm">Rendez-vous pré-programmés (Formule B2B Match)</h5>
+                  <p className="text-xs text-slate-500">Pour garantir des entretiens fructueux avec des investisseurs stratégiques.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <span className="p-1 rounded bg-gold/20 text-gold text-xs font-bold font-mono mt-0.5 select-none">02</span>
+                <span className="p-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 text-xs font-bold font-mono mt-0.5 select-none">02</span>
                 <div>
-                  <h5 className="font-bold text-white text-sm">Conférences &amp; Séminaires Techniques</h5>
-                  <p className="text-xs text-gray-400">Interventions d'experts certifiés sur le recyclage de l’eau et l'énergie solaire.</p>
+                  <h5 className="font-bold text-slate-900 text-sm">Conférences &amp; Séminaires Techniques</h5>
+                  <p className="text-xs text-slate-500">Interventions d'experts certifiés sur le recyclage de l’eau et l'énergie solaire.</p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-6">
-            <div className="relative border border-gold/30 rounded-xl overflow-hidden aspect-video bg-navy shadow-2xl">
+            <div className="relative border border-sky-200 rounded-2xl overflow-hidden aspect-video bg-slate-100 shadow-md">
               <iframe 
                 width="100%" 
                 height="100%" 
@@ -2519,43 +2526,42 @@ export default function App() {
       </section>
 
       {/* ===== LOWER EVENT ADVERTISEMENT & PROMOTION BANNER (PREMIUM CTA SECTION) ===== */}
-      <section className="bg-navy relative py-28 text-white border-t-2 border-gold overflow-hidden" id="lower-stand-cta">
+      <section className="bg-gradient-to-b from-sky-50/80 via-white to-sky-50/50 relative py-24 text-slate-900 border-t border-b border-sky-200 overflow-hidden" id="lower-stand-cta">
         {/* Ambient background decoration */}
-        <div className="absolute inset-0 bg-radial-gradient from-navy-light/40 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute right-0 bottom-0 w-96 h-96 bg-gold/5 blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute left-10 top-10 w-72 h-72 bg-navy-light/20 blur-2xl rounded-full pointer-events-none" />
+        <div className="absolute right-0 bottom-0 w-96 h-96 bg-sky-200/20 blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute left-10 top-10 w-72 h-72 bg-cyan-100/30 blur-2xl rounded-full pointer-events-none" />
 
         <div className="container mx-auto px-6 lg:px-12 relative z-10 text-center space-y-8 max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-gold/10 border border-gold/30 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-gold animate-ping" />
-            <span className="text-[10px] uppercase font-bold tracking-widest text-gold font-mono">INSCRIPTIONS & RÉSERVATIONS EN COURS</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-sky-100/80 border border-sky-200 rounded-full">
+            <span className="w-2 h-2 rounded-full bg-sky-600 animate-pulse" />
+            <span className="text-[10px] uppercase font-bold tracking-widest text-sky-700 font-mono">INSCRIPTIONS & RÉSERVATIONS EN COURS</span>
           </div>
           
-          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight max-w-3xl mx-auto">
-            Propulsez Votre Entreprise au Coeur de <span className="text-gold italic font-serif">l'Écosystème</span> Africain
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight max-w-3xl mx-auto text-slate-900">
+            Propulsez Votre Entreprise au Cœur de <span className="text-sky-600 italic font-serif">l'Écosystème</span> Africain
           </h2>
           
-          <p className="text-gray-300 font-sans text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+          <p className="text-slate-600 font-sans text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
             Que vous soyez fabricant international souhaitant étendre sa distribution, ou professionnel en quête des dernières avancées technologiques, l'Africa Pool &amp; Spa Expo est votre point d'ancrage stratégique.
           </p>
 
           {/* Premium visual benefits list before CTA buttons */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto py-6 border-y border-white/10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto py-6 border-y border-sky-200/60">
             <div className="text-center space-y-1">
-              <div className="text-gold font-serif font-bold text-lg md:text-xl">150+</div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">Exposants Globaux</div>
+              <div className="text-sky-600 font-serif font-bold text-lg md:text-xl">150+</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-mono">Exposants Globaux</div>
             </div>
             <div className="text-center space-y-1">
-              <div className="text-gold font-serif font-bold text-lg md:text-xl">Casablanca</div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">Hub Stratégique</div>
+              <div className="text-sky-600 font-serif font-bold text-lg md:text-xl">Casablanca</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-mono">Hub Stratégique</div>
             </div>
             <div className="text-center space-y-1">
-              <div className="text-gold font-serif font-bold text-lg md:text-xl">B2B Match</div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">Rendez-vous Ciblés</div>
+              <div className="text-sky-600 font-serif font-bold text-lg md:text-xl">B2B Match</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-mono">Rendez-vous Ciblés</div>
             </div>
             <div className="text-center space-y-1">
-              <div className="text-gold font-serif font-bold text-lg md:text-xl">Éco-Intelligent</div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">Focus Innovation</div>
+              <div className="text-sky-600 font-serif font-bold text-lg md:text-xl">Éco-Intelligent</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-mono">Focus Innovation</div>
             </div>
           </div>
 
@@ -2563,14 +2569,14 @@ export default function App() {
             <button
               id="middle-reserve-stand-btn"
               onClick={() => setIsStandModalOpen(true)}
-              className="px-8 py-4 bg-gold text-white font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold-light hover:shadow-xl transition-all w-full sm:w-auto shadow-md"
+              className="px-8 py-4 bg-sky-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-sky-700 hover:shadow-lg transition-all w-full sm:w-auto shadow-sm cursor-pointer"
             >
               🛠️ Ouvrir le simulateur de stand
             </button>
             <button
               id="middle-b2b-badge-btn"
               onClick={() => setIsTicketModalOpen(true)}
-              className="px-8 py-4 bg-navy-light border border-gold/40 text-gold font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold hover:text-navy hover:border-gold transition-all w-full sm:w-auto"
+              className="px-8 py-4 bg-white border-2 border-sky-600 text-sky-700 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-sky-50 transition-all w-full sm:w-auto shadow-xs cursor-pointer"
             >
               🎟️ Demander mon Badge d'Accès
             </button>
@@ -2585,53 +2591,53 @@ export default function App() {
             
             {/* LHS Contacts, phone, social & addresses (5 cols) */}
             <div className="lg:col-span-4 space-y-6 text-left">
-              <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">INFORMATIONS PRATIQUES</span>
-              <h3 className="font-serif text-navy text-2xl sm:text-3xl font-extrabold leading-tight">
+              <span className="text-xs uppercase font-extrabold tracking-widest text-sky-600 font-mono">INFORMATIONS PRATIQUES</span>
+              <h3 className="font-serif text-slate-900 text-2xl sm:text-3xl font-extrabold leading-tight">
                 Direction du Salon &amp; Réservations
               </h3>
               
-              <p className="text-gray-500 text-sm leading-relaxed">
+              <p className="text-slate-600 text-sm leading-relaxed">
                 Le secrétariat général de l'Africa Pool &amp; Spa Expo est à votre entière disposition pour toute demande de plan sur mesure, accréditation de presse, ou sponsoring premium.
               </p>
 
               <div className="space-y-4 pt-4 text-xs">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-light text-gold flex items-center justify-center font-bold">📞</div>
+                  <div className="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center font-bold border border-sky-100">📞</div>
                   <div>
-                    <div className="text-gray-400">Direction Casablanca:</div>
-                    <div className="font-bold text-navy">+212 5 22 30 59 55</div>
+                    <div className="text-slate-500">Direction Casablanca:</div>
+                    <div className="font-bold text-slate-900">+212 5 22 30 59 55</div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-light text-gold flex items-center justify-center font-bold">💬</div>
+                  <div className="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center font-bold border border-sky-100">💬</div>
                   <div>
-                    <div className="text-gray-400">WhatsApp Commercial:</div>
-                    <div className="font-bold text-navy">+212 661 482 497</div>
+                    <div className="text-slate-500">WhatsApp Commercial:</div>
+                    <div className="font-bold text-slate-900">+212 661 482 497</div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-light text-gold flex items-center justify-center font-bold">✉️</div>
+                  <div className="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center font-bold border border-sky-100">✉️</div>
                   <div>
-                    <div className="text-gray-400">Email Général:</div>
-                    <div className="font-bold text-navy hover:text-gold select-all">contact@africapoolspa.com</div>
+                    <div className="text-slate-500">Email Général:</div>
+                    <div className="font-bold text-slate-900 hover:text-sky-600 select-all">contact@africapoolspa.com</div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-light text-gold flex items-center justify-center font-bold">📍</div>
+                  <div className="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center font-bold border border-sky-100">📍</div>
                   <div>
-                    <div className="text-gray-400">Emplacement Physique:</div>
-                    <div className="font-bold text-navy">OFEC, Boulevard de l'éventail, Casablanca, Maroc</div>
+                    <div className="text-slate-500">Emplacement Physique:</div>
+                    <div className="font-bold text-slate-900">OFEC, Boulevard de l'éventail, Casablanca, Maroc</div>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-100">
+              <div className="pt-4 border-t border-slate-100">
                 <button
                   onClick={() => openAdminConsoleOrLogin('messages')}
-                  className="text-xs font-bold text-gold hover:text-gold-light flex items-center gap-2 underline text-left"
+                  className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-2 underline text-left"
                 >
                   🔒 Accéder à l'espace de messagerie de l'exposition (Admin)
                 </button>
@@ -2639,13 +2645,13 @@ export default function App() {
             </div>
 
             {/* RHS Interactive form (8 cols) */}
-            <div className="lg:col-span-8 bg-light/40 p-8 rounded-lg border border-gray-200 text-left">
-              <h4 className="font-serif text-lg font-bold text-navy mb-4">Écrire au Secrétariat Général</h4>
+            <div className="lg:col-span-8 bg-sky-50/40 p-8 rounded-2xl border border-sky-100 text-left">
+              <h4 className="font-serif text-lg font-bold text-slate-900 mb-4">Écrire au Secrétariat Général</h4>
               
               <form onSubmit={handleContactSubmit} className="space-y-4">
                 
                 {contactResultMsg.text && (
-                  <div className={`p-4 rounded text-xs font-semibold ${
+                  <div className={`p-4 rounded-lg text-xs font-semibold ${
                     contactResultMsg.type === 'success' ? 'bg-emerald-50 text-emerald-800 border-l-4 border-emerald-500' : 'bg-red-50 text-red-800 border-l-4 border-red-500'
                   }`}>
                     {contactResultMsg.text}
@@ -2654,23 +2660,23 @@ export default function App() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-navy/70 mb-1">Nom Complet *</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Nom Complet *</label>
                     <input 
                       type="text" 
                       required
                       placeholder="Ex: Karim Bensalah"
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:border-gold focus:outline-none bg-white text-xs"
+                      className="w-full px-3 py-2.5 border border-sky-200 rounded-lg focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none bg-white text-xs"
                       value={contactForm.name}
                       onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-navy/70 mb-1">Email Professionnel *</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Email Professionnel *</label>
                     <input 
                       type="email" 
                       required
                       placeholder="Ex: k.bensalah@piscines-casa.com"
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:border-gold focus:outline-none bg-white text-xs"
+                      className="w-full px-3 py-2.5 border border-sky-200 rounded-lg focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none bg-white text-xs"
                       value={contactForm.email}
                       onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                     />
@@ -2679,19 +2685,19 @@ export default function App() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-navy/70 mb-1">Téléphone Direct</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Téléphone Direct</label>
                     <input 
                       type="tel" 
                       placeholder="Ex: +212 6..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:border-gold focus:outline-none bg-white text-xs"
+                      className="w-full px-3 py-2.5 border border-sky-200 rounded-lg focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none bg-white text-xs"
                       value={contactForm.phone}
                       onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-navy/70 mb-1">Objet du message *</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Objet du message *</label>
                     <select 
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:border-gold focus:outline-none bg-white text-xs"
+                      className="w-full px-3 py-2.5 border border-sky-200 rounded-lg focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none bg-white text-xs"
                       value={contactForm.subject}
                       onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
                     >
@@ -2705,25 +2711,25 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-navy/70 mb-1">Votre Message *</label>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Votre Message *</label>
                   <textarea 
                     required
                     rows={4}
                     placeholder="Saisissez ici le détail de votre demande. Notre comité administratif vous apportera une réponse personnalisée..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded focus:border-gold focus:outline-none bg-white text-xs resize-none"
+                    className="w-full px-3 py-2.5 border border-sky-200 rounded-lg focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none bg-white text-xs resize-none"
                     value={contactForm.message}
                     onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                   />
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <p className="text-[10px] text-gray-400">
+                  <p className="text-[10px] text-slate-400">
                     * Informations obligatoires. Traitement sécurisé RGPD.
                   </p>
                   <button
                     type="submit"
                     disabled={isSendingMessage}
-                    className="px-6 py-2.5 bg-navy text-white text-xs font-bold uppercase tracking-widest rounded hover:bg-navy-light hover:shadow-md transition-all flex items-center gap-1.5"
+                    className="px-6 py-2.5 bg-sky-600 text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-sky-700 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     {isSendingMessage ? (
                       <>
@@ -2743,28 +2749,28 @@ export default function App() {
       </section>
 
       {/* ===== BOTTOM FOOTER AREA ===== */}
-      <footer className="bg-[#050f22] text-white/50 pt-16 pb-8 border-t border-white/5" id="main-footer">
+      <footer className="bg-slate-50 text-slate-600 pt-16 pb-8 border-t border-sky-100" id="main-footer">
         <div className="container mx-auto px-6 lg:px-12">
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 pb-12 border-b border-white/5">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 pb-12 border-b border-slate-200">
             <div className="space-y-4">
-              <Logo variant="horizontal" className="scale-90 origin-left" />
-              <p className="text-xs text-gray-400 leading-relaxed font-sans">
+              <Logo variant="horizontal" theme="water" className="scale-95 origin-left" />
+              <p className="text-xs text-slate-500 leading-relaxed font-sans">
                 La référence absolue en Afrique pour la piscine et le spa. Un événement B2B incontournable conçu pour stimuler le tourisme haut de gamme.
               </p>
-              <div className="text-xs text-gold font-bold">
+              <div className="text-xs text-sky-600 font-bold">
                 ⭐ Propulsé par le serveur Express + DB
               </div>
             </div>
 
             <div className="space-y-3">
-              <h5 className="text-[10px] uppercase tracking-wider text-gold font-bold">Espace Organisateur</h5>
+              <h5 className="text-[10px] uppercase tracking-wider text-slate-900 font-bold">Espace Organisateur</h5>
               <div className="flex flex-col gap-2 text-xs">
                 {isAdminAuthenticated ? (
                   <>
                     <button 
                       onClick={() => setIsAdminPanelOpen(true)}
-                      className="text-left text-gray-300 hover:text-gold transition-colors block"
+                      className="text-left text-slate-600 hover:text-sky-600 transition-colors block"
                     >
                       🔑 Console Administrateur
                     </button>
@@ -2773,7 +2779,7 @@ export default function App() {
                         setIsAdminPanelOpen(true);
                         setAdminTab('stands');
                       }}
-                      className="text-left text-gray-300 hover:text-gold transition-colors block"
+                      className="text-left text-slate-600 hover:text-sky-600 transition-colors block"
                     >
                       📋 Validation de dossiers stands
                     </button>
@@ -2782,7 +2788,7 @@ export default function App() {
                         setIsAdminPanelOpen(true);
                         setAdminTab('visitors');
                       }}
-                      className="text-left text-gray-300 hover:text-gold transition-colors block"
+                      className="text-left text-slate-600 hover:text-sky-600 transition-colors block"
                     >
                       🎟️ Liste des badges professionnels
                     </button>
@@ -2790,17 +2796,17 @@ export default function App() {
                 ) : (
                   <button 
                     onClick={() => setIsAdminLoginModalOpen(true)}
-                    className="text-left text-gray-400 hover:text-gold transition-colors flex items-center gap-1.5"
+                    className="text-left text-slate-600 hover:text-sky-600 transition-colors flex items-center gap-1.5"
                   >
-                    <Lock className="h-3 w-3 text-gold" /> Connexion Administrateur
+                    <Lock className="h-3 w-3 text-sky-600" /> Connexion Administrateur
                   </button>
                 )}
               </div>
             </div>
 
             <div className="space-y-3">
-              <h5 className="text-[10px] uppercase tracking-wider text-gold font-bold">Secteurs techniques</h5>
-              <ul className="space-y-2 text-xs text-gray-400">
+              <h5 className="text-[10px] uppercase tracking-wider text-slate-900 font-bold">Secteurs techniques</h5>
+              <ul className="space-y-2 text-xs text-slate-500">
                 <li>Pool Equipment - Équipement Piscine</li>
                 <li>Water Treatment - Traitement de l’Eau</li>
                 <li>Spa &amp; Wellness - Spas &amp; Bien-être</li>
@@ -2809,23 +2815,23 @@ export default function App() {
             </div>
 
             <div className="space-y-3">
-              <h5 className="text-[10px] uppercase tracking-wider text-gold font-bold">Partenaires exposants</h5>
-              <p className="text-xs text-gray-400">
+              <h5 className="text-[10px] uppercase tracking-wider text-slate-900 font-bold">Partenaires exposants</h5>
+              <p className="text-xs text-slate-500">
                 Saya Line, Frio Équipement, PoolSPA, PALEDO, CCEI, NWG, Atlanta Pompe, First Water, SWIN.LED.
               </p>
             </div>
           </div>
 
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400">
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
             <p className="font-sans">
               © 2026 Africa Pool &amp; Spa Expo. Tous droits réservés. Événement professionnel de Casablanca.
             </p>
-            <div className="flex gap-4 mt-4 sm:mt-0 text-[10px] tracking-widest uppercase font-bold text-gray-500">
-              <a href="#" className="hover:text-gold">LinkedIn</a>
+            <div className="flex gap-4 mt-4 sm:mt-0 text-[10px] tracking-widest uppercase font-bold text-slate-400">
+              <a href="#" className="hover:text-sky-600">LinkedIn</a>
               <span>•</span>
-              <a href="#" className="hover:text-gold">Facebook</a>
+              <a href="#" className="hover:text-sky-600">Facebook</a>
               <span>•</span>
-              <a href="#" className="hover:text-gold">Instagram</a>
+              <a href="#" className="hover:text-sky-600">Instagram</a>
             </div>
           </div>
         </div>
@@ -2864,9 +2870,8 @@ export default function App() {
                 setAdminLoginStep('credentials');
                 setAdminLoginError('');
                 setAdmin2faError('');
-                setAdmin2faSuccessMsg('');
               }}
-              className="absolute inset-0 bg-[#050f22]/90 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
 
             {/* Modal Body */}
@@ -2874,7 +2879,7 @@ export default function App() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-lg bg-[#0a1f44] border-2 border-gold/50 rounded-2xl p-6 sm:p-8 shadow-2xl text-white z-10 font-sans max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-lg bg-white border border-[#bae6fd] rounded-2xl p-6 sm:p-8 shadow-2xl text-slate-800 z-10 font-sans max-h-[90vh] overflow-y-auto"
               id="admin-login-modal-content"
             >
               {/* Close Button */}
@@ -2884,9 +2889,8 @@ export default function App() {
                   setAdminLoginStep('credentials');
                   setAdminLoginError('');
                   setAdmin2faError('');
-                  setAdmin2faSuccessMsg('');
                 }}
-                className="absolute top-4 right-4 text-white/50 hover:text-white p-1 hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
                 title="Fermer la fenêtre d'authentification"
               >
                 <X className="h-5 w-5" />
@@ -2896,35 +2900,35 @@ export default function App() {
               <div className="flex items-center justify-center gap-2 mb-6 text-xs font-semibold">
                 <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
                   adminLoginStep === 'credentials'
-                    ? 'bg-gold/20 border-gold text-gold shadow-sm'
-                    : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
+                    ? 'bg-[#e0f2fe] border-[#38bdf8] text-[#0284c7] shadow-sm font-bold'
+                    : 'bg-emerald-50 border-emerald-300 text-emerald-700'
                 }`}>
-                  {adminLoginStep === '2fa' ? <CheckCircle2 className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+                  {adminLoginStep === '2fa' ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> : <User className="h-3.5 w-3.5" />}
                   <span>1. Identifiants</span>
                 </div>
-                <div className="w-6 h-0.5 bg-gray-700" />
+                <div className="w-6 h-0.5 bg-slate-200" />
                 <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all ${
                   adminLoginStep === '2fa'
-                    ? 'bg-gold/20 border-gold text-gold shadow-[0_0_12px_rgba(200,146,42,0.3)]'
-                    : 'bg-gray-800/40 border-gray-700 text-gray-500'
+                    ? 'bg-[#e0f2fe] border-[#38bdf8] text-[#0284c7] shadow-sm font-bold'
+                    : 'bg-slate-50 border-slate-200 text-slate-400'
                 }`}>
                   <Mail className="h-3.5 w-3.5" />
-                  <span>2. Sécurité E-mail</span>
+                  <span>2. Vérification E-mail</span>
                 </div>
               </div>
 
               {/* ================= STEP 1: CREDENTIALS ================= */}
               {adminLoginStep === 'credentials' ? (
                 <div>
-                  {/* Padlock Accent banner */}
+                  {/* Lock Accent banner */}
                   <div className="flex flex-col items-center text-center space-y-3 mb-6">
-                    <div className="w-14 h-14 bg-gold/10 border border-gold/40 text-gold flex items-center justify-center rounded-full shadow-inner animate-[pulse_3s_infinite]">
+                    <div className="w-14 h-14 bg-[#e0f2fe] border border-[#bae6fd] text-[#0284c7] flex items-center justify-center rounded-full shadow-inner">
                       <Lock className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="font-serif text-xl font-bold tracking-tight text-white">Espace Administrateur</h3>
-                      <p className="text-xs text-gray-400 mt-1">Accès réservé aux organisateurs du salon de Casablanca</p>
-                      <div className="mt-2 inline-flex items-center gap-1 text-[11px] text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">
+                      <h3 className="text-xl font-bold tracking-tight text-slate-900">Espace Administrateur</h3>
+                      <p className="text-xs text-slate-500 mt-1">Accès réservé aux organisateurs du salon de Casablanca</p>
+                      <div className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-[#0284c7] bg-[#e0f2fe]/70 px-3 py-0.5 rounded-full border border-[#bae6fd]">
                         <KeyRound className="h-3 w-3" />
                         Validation de sécurité par e-mail requise
                       </div>
@@ -2934,22 +2938,22 @@ export default function App() {
                   {/* Login Form */}
                   <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
                     {adminLoginError && (
-                      <div className="p-3 bg-rose-500/15 border border-rose-500/30 rounded-lg text-rose-300 text-xs text-left leading-relaxed flex items-start gap-2">
+                      <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs text-left leading-relaxed flex items-start gap-2">
                         <span>⚠️</span>
                         <div>{adminLoginError}</div>
                       </div>
                     )}
 
                     <div className="space-y-1.5 text-left text-xs">
-                      <label className="block text-gray-300 font-bold uppercase tracking-wider">Identifiant Administrateur</label>
+                      <label className="block text-slate-700 font-bold uppercase tracking-wider">Identifiant Administrateur</label>
                       <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-gold" />
+                        <User className="absolute left-3 top-3 h-4 w-4 text-[#0284c7]" />
                         <input 
                           type="text"
                           required
                           autoFocus
                           placeholder="Identifiant de l'organisateur"
-                          className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
+                          className="w-full bg-slate-50 border border-slate-200 hover:border-[#38bdf8] focus:border-[#0284c7] focus:bg-white rounded-lg pl-10 pr-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/20 transition-all text-xs font-mono"
                           value={adminUsername}
                           onChange={(e) => setAdminUsername(e.target.value)}
                         />
@@ -2957,14 +2961,14 @@ export default function App() {
                     </div>
 
                     <div className="space-y-1.5 text-left text-xs">
-                      <label className="block text-gray-300 font-bold uppercase tracking-wider">Mot de passe / Passcode</label>
+                      <label className="block text-slate-700 font-bold uppercase tracking-wider">Mot de passe / Passcode</label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gold" />
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-[#0284c7]" />
                         <input 
                           type="password"
                           required
                           placeholder="Mot de passe"
-                          className="w-full bg-[#050f22] border border-gray-700 hover:border-gold/30 focus:border-gold rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none transition-all text-xs font-mono"
+                          className="w-full bg-slate-50 border border-slate-200 hover:border-[#38bdf8] focus:border-[#0284c7] focus:bg-white rounded-lg pl-10 pr-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/20 transition-all text-xs font-mono"
                           value={adminPassword}
                           onChange={(e) => setAdminPassword(e.target.value)}
                         />
@@ -2974,7 +2978,7 @@ export default function App() {
                     <button 
                       type="submit"
                       disabled={admin2faLoading}
-                      className="w-full py-3 bg-gold text-navy font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-gold-light transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer mt-3 disabled:opacity-50"
+                      className="w-full py-3 bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-xs uppercase tracking-widest rounded-lg transition-all shadow-md shadow-[#0284c7]/20 flex items-center justify-center gap-2 cursor-pointer mt-3 disabled:opacity-50"
                     >
                       {admin2faLoading ? (
                         <>
@@ -2992,139 +2996,57 @@ export default function App() {
                 /* ================= STEP 2: 2FA OTP VALIDATION (EMAIL ONLY) ================= */
                 <div>
                   <div className="flex flex-col items-center text-center space-y-2 mb-5">
-                    <div className="w-14 h-14 bg-gold/15 border border-gold text-gold flex items-center justify-center rounded-full shadow-[0_0_20px_rgba(200,146,42,0.25)]">
+                    <div className="w-14 h-14 bg-[#e0f2fe] border border-[#bae6fd] text-[#0284c7] flex items-center justify-center rounded-full shadow-inner">
                       <KeyRound className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="font-serif text-xl font-bold tracking-tight text-white">Validation de Sécurité par E-mail</h3>
-                      <p className="text-xs text-gray-300 mt-1">
+                      <h3 className="text-xl font-bold tracking-tight text-slate-900">Validation de Sécurité par E-mail</h3>
+                      <p className="text-xs text-slate-500 mt-1">
                         Saisissez le code de sécurité à 6 chiffres envoyé à votre adresse e-mail pour déverrouiller le Backoffice
                       </p>
                     </div>
                   </div>
 
                   {/* Sent Coordinates Banner */}
-                  <div className="bg-[#050f22]/80 border border-gold/30 rounded-xl p-3.5 mb-4 text-xs space-y-2 text-left">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 mb-4 text-xs space-y-2 text-left">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 font-medium">Canal de validation :</span>
-                      <span className="text-emerald-400 flex items-center gap-1 text-[11px] font-semibold">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                        Code e-mail transmis
+                      <span className="text-slate-500 font-medium">Canal de validation :</span>
+                      <span className="text-emerald-700 flex items-center gap-1.5 text-[11px] font-semibold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                        Code envoyé par e-mail
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-gray-200 bg-white/5 px-2.5 py-2 rounded-lg border border-white/5">
+                    <div className="flex items-center justify-between text-slate-700 bg-white px-2.5 py-2 rounded-lg border border-slate-200 shadow-sm">
                       <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-gold" />
-                        <span className="text-xs">E-mail Administrateur :</span>
+                        <Mail className="h-4 w-4 text-[#0284c7]" />
+                        <span className="text-xs font-medium">E-mail Administrateur :</span>
                       </div>
-                      <span className="font-mono text-xs font-bold text-gold truncate max-w-[220px]">
+                      <span className="font-mono text-xs font-bold text-[#0284c7] truncate max-w-[220px]">
                         {admin2faSentInfo?.maskedEmail || admin2faEmail}
                       </span>
                     </div>
 
-                    {/* Live delivery status indicator */}
-                    {admin2faSentInfo?.emailDeliveryStatus && (
-                      <div className="text-[10px] text-emerald-400/90 bg-emerald-950/40 border border-emerald-500/20 px-2.5 py-1 rounded flex items-center gap-1.5">
-                        <CheckCircle2 className="h-3 w-3 text-emerald-400 shrink-0" />
-                        <span className="truncate">{admin2faSentInfo.emailDeliveryStatus}</span>
-                      </div>
-                    )}
-
-                    <div className="pt-1 flex items-center justify-between text-[11px] text-gray-400">
+                    <div className="pt-1 flex items-center justify-between text-[11px] text-slate-500">
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-gold" />
+                        <Clock className="h-3.5 w-3.5 text-[#0284c7]" />
                         Validité : 10 minutes
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowConfigDetails(!showConfigDetails)}
-                        className="text-gold hover:underline cursor-pointer"
-                      >
-                        {showConfigDetails ? 'Masquer paramètres' : 'Paramètres & Test Resend'}
-                      </button>
                     </div>
-
-                    {showConfigDetails && (
-                      <div className="pt-2 mt-2 border-t border-gray-800 space-y-2">
-                        <div>
-                          <label className="text-[10px] text-gray-400 block mb-1">E-mail Administrateur :</label>
-                          <input
-                            type="email"
-                            value={admin2faEmail}
-                            onChange={(e) => setAdmin2faEmail(e.target.value)}
-                            className="w-full bg-[#030a17] border border-gray-700 rounded px-2.5 py-1.5 text-xs text-white font-mono"
-                            placeholder="admin@gmail.com"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => sendVerificationCode()}
-                            disabled={admin2faLoading}
-                            className="py-1.5 bg-gold/20 hover:bg-gold/30 border border-gold/40 text-gold rounded text-[11px] font-semibold cursor-pointer"
-                          >
-                            Renvoyer le code
-                          </button>
-                          <button
-                            type="button"
-                            onClick={runResendTest}
-                            disabled={testingResend}
-                            className="py-1.5 bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-300 rounded text-[11px] font-semibold cursor-pointer flex items-center justify-center gap-1"
-                          >
-                            {testingResend ? (
-                              <>
-                                <Loader2 className="h-3 w-3 animate-spin" /> Test en cours...
-                              </>
-                            ) : (
-                              <>
-                                <Mail className="h-3 w-3" /> Tester API Resend
-                              </>
-                            )}
-                          </button>
-                        </div>
-
-                        {resendTestResult && (
-                          <div className={`p-2 rounded text-[10px] border ${
-                            resendTestResult.success
-                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                              : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                          }`}>
-                            <div className="font-bold flex items-center gap-1">
-                              {resendTestResult.success ? <CheckCircle2 className="h-3 w-3 text-emerald-400" /> : <span>⚠️</span>}
-                              {resendTestResult.message}
-                            </div>
-                            {resendTestResult.emailId && (
-                              <div className="text-gray-400 mt-0.5 font-mono text-[9px]">
-                                ID Resend : {resendTestResult.emailId}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
 
-                  {/* Feedback alerts */}
+                  {/* Error feedback if any */}
                   {admin2faError && (
-                    <div className="mb-4 p-3 bg-rose-500/15 border border-rose-500/30 rounded-lg text-rose-300 text-xs text-left leading-relaxed flex items-start gap-2">
+                    <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs text-left leading-relaxed flex items-start gap-2">
                       <span>⚠️</span>
                       <div>{admin2faError}</div>
-                    </div>
-                  )}
-
-                  {admin2faSuccessMsg && !admin2faError && (
-                    <div className="mb-4 p-2.5 bg-emerald-500/15 border border-emerald-500/30 rounded-lg text-emerald-300 text-xs text-left leading-relaxed flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                      <div>{admin2faSuccessMsg}</div>
                     </div>
                   )}
 
                   {/* Verification Form */}
                   <form onSubmit={handleVerify2faSubmit} className="space-y-4">
                     <div className="space-y-2 text-left">
-                      <label className="block text-gray-300 font-bold uppercase tracking-wider text-xs">
+                      <label className="block text-slate-700 font-bold uppercase tracking-wider text-xs">
                         Code de Sécurité (6 chiffres) :
                       </label>
                       <div className="relative">
@@ -3138,7 +3060,7 @@ export default function App() {
                           placeholder="• • • • • •"
                           value={admin2faCode}
                           onChange={(e) => setAdmin2faCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                          className="w-full bg-[#050f22] border-2 border-gold/40 focus:border-gold rounded-xl py-3 px-4 text-center text-2xl font-mono font-bold text-white tracking-[0.4em] placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gold/30 transition-all shadow-inner"
+                          className="w-full bg-slate-50 border-2 border-slate-200 focus:border-[#0284c7] focus:bg-white rounded-xl py-3 px-4 text-center text-2xl font-mono font-bold text-slate-900 tracking-[0.4em] placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-[#38bdf8]/30 transition-all shadow-inner"
                         />
                       </div>
                     </div>
@@ -3146,7 +3068,7 @@ export default function App() {
                     <button
                       type="submit"
                       disabled={admin2faVerifying || admin2faCode.trim().length < 6}
-                      className="w-full py-3.5 bg-gold text-navy font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-gold-light transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                      className="w-full py-3.5 bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md shadow-[#0284c7]/25 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                     >
                       {admin2faVerifying ? (
                         <>
@@ -3161,14 +3083,14 @@ export default function App() {
                   </form>
 
                   {/* Footer actions: resend & back to credentials */}
-                  <div className="mt-4 pt-4 border-t border-gray-800 flex items-center justify-between text-xs">
+                  <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between text-xs">
                     <button
                       type="button"
                       onClick={() => {
                         setAdminLoginStep('credentials');
                         setAdmin2faError('');
                       }}
-                      className="text-gray-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                      className="text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer transition-colors"
                     >
                       <ArrowLeft className="h-3.5 w-3.5" />
                       Modifier les identifiants
@@ -3178,7 +3100,7 @@ export default function App() {
                       type="button"
                       disabled={resendCooldown > 0 || admin2faLoading}
                       onClick={() => sendVerificationCode()}
-                      className="text-gold hover:underline disabled:text-gray-500 disabled:no-underline cursor-pointer flex items-center gap-1"
+                      className="text-[#0284c7] hover:underline disabled:text-slate-400 disabled:no-underline cursor-pointer flex items-center gap-1"
                     >
                       <RefreshCw className={`h-3 w-3 ${admin2faLoading ? 'animate-spin' : ''}`} />
                       {resendCooldown > 0 ? `Renvoyer le code (${resendCooldown}s)` : 'Renvoyer le code'}
@@ -4318,6 +4240,70 @@ export default function App() {
                       >
                         🔄 Réinitialiser
                       </button>
+                    </div>
+
+                    {/* Slide Opacity Adjustment */}
+                    <div className="bg-[#050f22]/70 border border-gray-800 p-4 rounded-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="text-xs font-extrabold uppercase text-gold tracking-widest flex items-center gap-1.5">
+                            <Sliders className="h-4 w-4 text-gold" /> Opacité des Images du Diaporama ({slideOpacity}%)
+                          </h5>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            Ajuste l'intensité de visibilité des arrière-plans du Hero pour concilier immersion visuelle et lisibilité du texte.
+                          </p>
+                        </div>
+                        <span className="font-mono font-bold text-xs text-gold bg-gold/10 px-2.5 py-1 rounded border border-gold/30">
+                          {slideOpacity}%
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3 pt-1">
+                        <input
+                          type="range"
+                          min="15"
+                          max="100"
+                          step="5"
+                          value={slideOpacity}
+                          onChange={(e) => setSlideOpacity(Number(e.target.value))}
+                          className="flex-1 accent-[#c8922a] cursor-pointer h-2 bg-gray-800 rounded-lg"
+                        />
+                        <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setSlideOpacity(40)}
+                            className={`px-2.5 py-1 text-[10px] rounded font-medium border transition-colors cursor-pointer ${
+                              slideOpacity === 40 
+                                ? 'bg-gold text-navy font-bold border-gold' 
+                                : 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700'
+                            }`}
+                          >
+                            Léger (40%)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSlideOpacity(70)}
+                            className={`px-2.5 py-1 text-[10px] rounded font-medium border transition-colors cursor-pointer ${
+                              slideOpacity === 70 
+                                ? 'bg-gold text-navy font-bold border-gold' 
+                                : 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700'
+                            }`}
+                          >
+                            Équilibré (70%)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSlideOpacity(90)}
+                            className={`px-2.5 py-1 text-[10px] rounded font-medium border transition-colors cursor-pointer ${
+                              slideOpacity === 90 
+                                ? 'bg-gold text-navy font-bold border-gold' 
+                                : 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700'
+                            }`}
+                          >
+                            Intense (90%)
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Add slide form */}

@@ -6,13 +6,19 @@
   --font-serif: "Playfair Display", Georgia, serif;
   --font-mono: "JetBrains Mono", monospace;
   
-  --color-navy: #0a1f44;
-  --color-navy-light: #122459;
-  --color-gold: #c8922a;
-  --color-gold-light: #e8b44a;
-  --color-light: #f4f7fc;
-  --color-gray: #6b7a99;
-  --color-text: #1a2a4a;
+  --color-water: #0284c7;
+  --color-water-light: #38bdf8;
+  --color-water-dark: #0369a1;
+  --color-water-soft: #f0f9ff;
+  --color-water-border: #bae6fd;
+  
+  --color-navy: #0f172a;
+  --color-navy-light: #1e293b;
+  --color-gold: #0284c7;
+  --color-gold-light: #38bdf8;
+  --color-light: #f8fafc;
+  --color-gray: #64748b;
+  --color-text: #0f172a;
 }
 
 html {
@@ -33,14 +39,14 @@ body {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a1f44;
+  background: #f8fafc;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c8922a;
+  background: #0284c7;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #e8b44a;
+  background: #0369a1;
 }
 
 /* Print friendly ticket styles */

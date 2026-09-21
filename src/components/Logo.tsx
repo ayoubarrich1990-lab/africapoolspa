@@ -1,120 +1,224 @@
-import React, { useState } from 'react';
-import logoUrl from '../assets/logo.svg';
+import React from 'react';
 
 interface LogoProps {
   className?: string;
-  variant?: 'horizontal' | 'vertical' | 'symbol';
-  light?: boolean;
+  variant?: 'horizontal' | 'vertical' | 'symbol' | 'hero';
+  theme?: 'water' | 'white' | 'dark';
 }
 
 export const Logo: React.FC<LogoProps> = ({ 
   className = '', 
   variant = 'horizontal', 
-  light = true 
+  theme = 'water' 
 }) => {
-  const [imageError, setImageError] = useState(false);
+  const isWhite = theme === 'white';
+  const primaryColor = isWhite ? '#ffffff' : '#0284c7';
+  const secondaryColor = isWhite ? '#f8fafc' : '#0369a1';
+  const accentColor = isWhite ? 'rgba(255,255,255,0.85)' : '#0ea5e9';
+  const strokeLine = isWhite ? 'rgba(255,255,255,0.3)' : 'rgba(2,132,199,0.35)';
 
-  // High-Quality Self-Contained Vector Symbol (Abstract Africa shape & water waves for brand identity)
-  const DefaultSymbol = () => {
+  // Pure SVG Vectors from user's official Africa Pool & Spa Expo logo
+  const SvgLogoPaths = () => (
+    <svg 
+      viewBox="0 0 525.4 223.3" 
+      className="w-full h-auto max-h-full"
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Logo Africa Pool & Spa Expo"
+    >
+      <defs>
+        <linearGradient id="logoWaterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={accentColor} />
+          <stop offset="50%" stopColor={primaryColor} />
+          <stop offset="100%" stopColor={secondaryColor} />
+        </linearGradient>
+      </defs>
+
+      <g id="Calque_1-2">
+        <g>
+          {/* Central POOL & SPA stylized vectors */}
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M123.2,107.2c2,0.2,3.4,0.4,5.4,0.6c-2.7-7.6-2.9-14.8-0.4-22c7-20.6,36.8-28.4,53-13.8
+              c11.2,10.1,15.2,24.3,9.8,38.7c-5.2,13.8-16.1,20.7-30.4,22.2c-10.8,1.1-21-0.7-30.4-6.4c-1.4-0.8-3-1.5-4.4-2.3
+              c-3.3-1.9-6.1-1.6-9.4,0.8c-17.3,12.4-41.9,8.5-53-8.2c-10-15.1-5.9-37.4,8.7-47.1c15.8-10.5,38.1-6.3,48.1,9.2
+              C125.8,87.5,125.9,96.9,123.2,107.2L123.2,107.2z M90.8,119.9c13.8-1.1,21.2-7.4,23.2-19.1c1.6-9.3-1-17.7-8.6-23.4
+              c-7.7-5.7-16.5-5.8-24.8-1.4c-8.2,4.3-11.8,11.8-11.8,20.9c0.2,19.3,16.5,31.5,35,25.5c10.3-3.4,19.7-3.4,29.8,0.7
+              c12.5,5.1,25.2,3.8,37-2.9c12.5-7.1,16.5-26,8.1-37.2c-6.2-8.4-16.8-11.4-27.1-7.8c-9.1,3.2-14.9,12.4-14.5,23.3
+              c0.4,10.5,12.9,20.8,22.2,22.4c-9.5,1.3-20.2-2.7-27.6-6.6c-6.8-3.6-13.2-4.3-19.9,0.7C105.9,119.1,99.3,120.9,90.8,119.9
+              L90.8,119.9z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M329.8,112.4c9.9,6.6,20.3,9.8,31.7,8.8c2.7-0.2,5.3-0.9,7.9-1.7c3.8-1.1,6.5-3.5,6.5-7.7
+              c0-4.3-2.9-6.6-6.6-7.6c-5.6-1.6-11.5-2.6-17.1-4c-5.2-1.3-10.5-2.7-15.6-4.5c-5.9-2.1-9.4-6.4-9.7-12.9c-0.3-6.7,3-11.3,8.6-14.2
+              c10.3-5.3,21.2-5.5,32.2-3c5.5,1.2,10.7,3.5,16.9,5.6c-2.4,3.6-4.1,6.1-6,8.9c-9.2-5.9-19-7.5-29.3-6.3c-1.8,0.2-3.6,0.6-5.3,1.1
+              c-3,1-6.2,2.8-5.5,6.2c0.5,2.4,3.1,5.4,5.4,6.2c6.4,2.1,13.2,3,19.7,4.7c4.6,1.2,9.3,2.6,13.7,4.4c6.2,2.4,9.7,7.2,10,13.8
+              c0.3,7-2.5,12.8-8.9,16.1c-12.5,6.4-25.6,6-38.7,2.2c-5.7-1.6-11-4.5-17-7C325.5,118,327.5,115.4,329.8,112.4L329.8,112.4z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M408.4,129.3h-10.9V66.9c0.7-0.2,1.3-0.5,1.8-0.5c11.5,0.1,22.9,0,34.3,0.4c3.2,0.1,6.6,0.9,9.7,2
+              c9.4,3.3,13.6,10,13,19.8s-5.6,16.4-15.4,17.9c-8.9,1.3-18,1-27,1.4c-1.6,0.1-3.3,0-5.6,0L408.4,129.3L408.4,129.3z M408.5,98.7
+              c9,0,17.9,0.5,26.6-0.2c6.5-0.4,9.7-4.6,9.9-10.8c0.2-6.3-2.9-11.2-9.4-11.7c-8.9-0.8-17.9-0.2-27.1-0.2V98.7z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M1.3,64.2c12.7,0.6,25.3,0.2,37.5,2c11.5,1.7,16.6,9.6,15.8,20.5c-0.8,10.6-7.5,17.4-18.9,18.1
+              c-7.8,0.5-15.6,0.1-23.8,0.1v23.9H1.3C1.3,128.8,1.3,64.2,1.3,64.2z M12,74.2v22.7c7.9-0.4,15.5-0.4,23.1-1.3
+              c5.7-0.7,8.8-5.2,8.8-10.9c0-5.4-3-9.8-8.7-10.3C27.6,73.7,19.9,74.2,12,74.2z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M303.7,96.7c-3.4,6.4-6.7,12.5-10.1,19.1c3.9,4.5,7.9,9.1,12.1,13.9c-8.8,3.1-10.4-5.7-15.7-8.5
+              c-2.3,1.8-4.7,4.1-7.4,5.9c-7.8,5.2-17.5,4.5-25.3-1.5c-5.9-4.5-9-13.9-5.6-20.8c2.5-5,7-8.9,11.1-13.9c-3.2-4.3-7.7-9.9-5.1-17.2
+              c1-3,3.6-6,6.4-7.7c7.2-4.6,17.8-2.2,21.7,4.3c4.9,8.2,1.4,15-12.8,23.8c5.4,5.9,10.8,11.6,16.6,17.9c2.2-4.3,4.5-7.9,6-11.8
+              C297.1,96.3,299.3,95.1,303.7,96.7L303.7,96.7z M286,116.3c-5.8-6.2-11.4-12.3-17.1-18.2c-0.7-0.7-2.4-1.1-3.4-0.8
+              c-5.7,2.2-9.6,8.6-9.2,14.7c0.5,6.3,5,11.6,11.2,13.1C274.6,126.7,280.9,123.7,286,116.3z M272.2,68.6c-5.6,0-9.5,3.9-9.4,9.3
+              c0.1,4.1,4.7,11.7,7.1,11.7c4.9,0.1,12-7.3,11.9-12.4S277.7,68.5,272.2,68.6L272.2,68.6z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M200.3,65.2h10V120H242v9.1h-41.8L200.3,65.2L200.3,65.2z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M505.1,114.4c-11.1,0.3-20.1,0.1-31.2,0.4c-2.8,0.1-5.2,0.7-6.4,3.1c-0.2,0.5-0.4,1.1-0.5,1.8
+              c0,0.1-0.1,0.3-0.2,0.4c-5.2,10.8-4.8,10.1-18.2,9.9c4.7-9.3,9.5-18.8,19.7-22.6c6.9-2.6,14.4-3.9,21.8-5.1
+              c7-1.1,14.1-0.9,21.1-1.9c4.7-0.7,9.1-2.5,13.9-3.9c-2,6.2-5.3,11.6-11.5,14.8C511.3,112.3,507.7,114.3,505.1,114.4L505.1,114.4z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M508.7,100.1c-3.9,0-7,0.4-9.9-0.2c-1.4-0.2-2.8-2-3.5-3.4c-3.1-5.8-5.9-11.8-9.2-18.4
+              c-3.5,7.6-6.4,14.4-9.7,20.9c-1,1.9-3,3.5-4.9,4.6c-3.4,2.1-7.1,3.8-11.2,5.9c3.5-7.7,6.8-15.2,10.2-22.6
+              c2.7-5.9,5.7-11.7,8.3-17.6c1.1-2.6,2.6-3.9,5.4-3.5c3.1,0.5,6.8-1.6,9,2.9C498,79.1,503.2,89.1,508.7,100.1L508.7,100.1z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M385,180.3h140.4c0,0.2,0,0.5,0,0.7H385C385,180.8,385,180.6,385,180.3L385,180.3z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M514.9,111.1c3.1,5.8,7,12.5,10.5,19.1c-4.2,0-7.5,0-10.8,0c-0.7,0-1.8-0.1-2-0.6c-2.4-4.7-5.2-10.1-7.4-14.8
+              C510,113.9,514.6,110.6,514.9,111.1L514.9,111.1z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M0.1,180.3h140v0.7H0L0.1,180.3z"
+          />
+          <path 
+            fill={isWhite ? '#ffffff' : 'url(#logoWaterGrad)'} 
+            d="M448.5,130.1c0,0,10.8-12,20.6-14.1c0.7,1.3-6.4,14.7-6.4,14.7L448.5,130.1z"
+          />
+          <line 
+            stroke={strokeLine} 
+            strokeWidth="0.8" 
+            x1="0.9" 
+            y1="223.1" 
+            x2="525" 
+            y2="223.1" 
+          />
+
+          {/* Top text: AFRICA */}
+          <g>
+            <path 
+              fill={isWhite ? '#ffffff' : primaryColor} 
+              d="M196.8,25.5l-3-6.7h-14.1l-3,6.7h-2.7l11.4-25.3h2.6l11.4,25.3C199.6,25.5,196.8,25.5,196.8,25.5z M180.8,16.5h12.1l-6.1-13.7L180.8,16.5z"
+            />
+            <path 
+              fill={isWhite ? '#ffffff' : primaryColor} 
+              d="M207.4,0.2h17v2.2h-14.5v9.7H223v2.2h-13.1v11.1h-2.5V0.2z"
+            />
+            <path 
+              fill={isWhite ? '#ffffff' : primaryColor} 
+              d="M250.1,25.5l-5.5-8.3c-0.8,0-1.4,0.1-1.8,0.1h-6.9v8.2h-2.5V0.2h9.4c3.2,0,5.6,0.7,7.3,2.2
+                c1.7,1.5,2.6,3.5,2.6,6.2c0,2.1-0.5,3.8-1.5,5.2c-1,1.4-2.5,2.4-4.4,2.9l6.1,8.7L250.1,25.5L250.1,25.5z M242.8,15.1
+                c2.4,0,4.3-0.6,5.6-1.6c1.3-1.1,2-2.7,2-4.8s-0.6-3.6-2-4.6c-1.3-1.1-3.2-1.6-5.6-1.6h-6.9v12.6H242.8z"
+            />
+            <path 
+              fill={isWhite ? '#ffffff' : primaryColor} 
+              d="M263.2,0.2h2.5v25.3h-2.5V0.2z"
+            />
+            <path 
+              fill={isWhite ? '#ffffff' : primaryColor} 
+              d="M292.5,3c-1.3-0.6-2.7-0.8-4.1-0.8c-2,0-3.8,0.5-5.4,1.4s-2.9,2.2-3.9,3.9c-1,1.6-1.4,3.4-1.4,5.3
+                s0.5,3.7,1.4,5.3c1,1.6,2.2,2.9,3.9,3.9c1.6,1,3.4,1.4,5.4,1.4c1.4,0,2.8-0.3,4.1-0.8c1.3-0.5,2.5-1.3,3.5-2.3l1.5,1.6
+                c-1.3,1.2-2.7,2.1-4.3,2.8c-1.6,0.7-3.3,1-5,1c-2.4,0-4.6-0.6-6.6-1.7s-3.6-2.7-4.8-4.7s-1.8-4.1-1.8-6.5s0.6-4.5,1.8-6.4
+                s2.8-3.5,4.8-4.7c2-1.1,4.2-1.7,6.6-1.7c1.7,0,3.4,0.3,5,1s3,1.5,4.2,2.7L296,5.4C295,4.4,293.8,3.6,292.5,3L292.5,3z"
+            />
+            <path 
+              fill={isWhite ? '#ffffff' : primaryColor} 
+              d="M326.2,25.5l-3-6.7h-14l-3,6.7h-2.7l11.4-25.3h2.6L329,25.5C329,25.5,326.2,25.5,326.2,25.5z M310.2,16.5
+                h12.1l-6.1-13.7L310.2,16.5z"
+            />
+          </g>
+
+          {/* Bottom text: EXPO */}
+          <g>
+            <path 
+              fill={isWhite ? '#ffffff' : secondaryColor} 
+              d="M162,193.8v-34.1h34.8v6.3h-26.9v21.5h26.9v6.3H162z M169.3,179.5v-6.1h24.8v6.1H169.3z"
+            />
+            <path 
+              fill={isWhite ? '#ffffff' : secondaryColor} 
+              d="M208.6,193.8l19.1-20.2v5.8l-18.1-19.6h9l13.8,13.7l-3.8,0.1l13.1-13.8h8.6l-17.5,19.3v-5.7l19.3,20.5H243
+                l-14.6-14.5h3.6l-14.3,14.5L208.6,193.8L208.6,193.8z"
+            />
+            <path 
+              fill={isWhite ? '#ffffff' : secondaryColor} 
+              d="M266.9,193.8v-34.1h23.3c3.1,0,5.7,0.5,7.9,1.5s3.9,2.4,5.1,4.3c1.2,1.9,1.8,4.1,1.8,6.6s-0.6,4.7-1.8,6.6
+                c-1.2,1.9-2.9,3.3-5.1,4.3s-4.9,1.5-7.9,1.5h-18.9l3.5-3.6v13L266.9,193.8L266.9,193.8z M274.8,181.6l-3.5-3.8h18.5
+                c2.4,0,4.3-0.5,5.5-1.6c1.2-1,1.8-2.5,1.8-4.3s-0.6-3.4-1.8-4.4c-1.2-1-3-1.6-5.5-1.6h-18.5l3.5-3.8V181.6L274.8,181.6z"
+            />
+            <path 
+              fill={isWhite ? '#ffffff' : secondaryColor} 
+              d="M339.1,194.3c-3.4,0-6.5-0.4-9.4-1.3s-5.4-2.1-7.4-3.7c-2.1-1.6-3.7-3.5-4.9-5.6s-1.7-4.5-1.7-7
+                s0.6-4.9,1.7-7c1.2-2.1,2.8-4,4.9-5.6c2.1-1.6,4.6-2.8,7.4-3.7s5.9-1.3,9.3-1.3s6.5,0.4,9.3,1.3s5.3,2.1,7.4,3.7s3.7,3.4,4.9,5.6
+                s1.8,4.5,1.8,7.1s-0.6,4.9-1.8,7.1s-2.8,4-4.9,5.6s-4.5,2.8-7.4,3.7C345.6,193.9,342.5,194.3,339.1,194.3L339.1,194.3z
+                M339.1,187.6c1.9,0,3.7-0.3,5.3-0.8c1.6-0.5,3-1.3,4.2-2.2s2.2-2.1,2.8-3.5c0.7-1.3,1-2.8,1-4.4s-0.3-3.1-1-4.4
+                c-0.7-1.3-1.6-2.5-2.8-3.5c-1.2-1-2.6-1.7-4.2-2.2s-3.4-0.8-5.3-0.8s-3.7,0.3-5.3,0.8c-1.6,0.5-3,1.3-4.2,2.2s-2.2,2.1-2.8,3.5
+                c-0.7,1.3-1,2.8-1,4.4s0.3,3.1,1,4.4c0.7,1.4,1.6,2.5,2.8,3.5c1.2,1,2.6,1.7,4.2,2.2S337.2,187.6,339.1,187.6z"
+            />
+          </g>
+        </g>
+      </g>
+    </svg>
+  );
+
+  // Hero Variant: Majestic, centered, crisp and luminous presentation
+  if (variant === 'hero') {
     return (
-      <svg 
-        viewBox="0 0 100 100" 
-        className="h-12 w-12 flex-shrink-0 text-gold" 
-        fill="none" 
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Background elegant gold outer ring with subtle gradient */}
-        <circle 
-          cx="50" 
-          cy="50" 
-          r="45" 
-          stroke="url(#logoGoldGrad)" 
-          strokeWidth="2" 
-          fill={light ? "rgba(255, 255, 255, 0.03)" : "rgba(10, 31, 68, 0.02)"} 
-        />
-        <circle 
-          cx="50" 
-          cy="50" 
-          r="41" 
-          stroke={light ? "rgba(255, 255, 255, 0.15)" : "rgba(10, 31, 68, 0.08)"} 
-          strokeWidth="1" 
-          strokeDasharray="3 2" 
-        />
+      <div className={`relative flex flex-col items-center justify-center max-w-lg md:max-w-xl lg:max-w-2xl mx-auto w-full px-4 ${className}`} id="hero-brand-logo">
+        {/* Luminous water-blue background glow */}
+        <div className="absolute -inset-4 bg-gradient-to-r from-sky-400/10 via-cyan-400/20 to-blue-500/10 rounded-3xl blur-2xl -z-10 pointer-events-none" />
         
-        {/* Abstract Golden African Continent Silhouette with high premium details */}
-        <path 
-          d="M50 20 C54 20, 58 21, 62 24 C65 27, 68 31, 68 35 C68 38, 66 40, 65 42 C64 43, 65 45, 66 47 C67 50, 65 54, 63 57 C59 63, 56 69, 53 75 C51 78, 49 81, 47 81 C45 81, 44 78, 44 75 C44 72, 42 69, 40 66 C38 62, 34 60, 31 57 C28 54, 26 51, 26 46 C26 42, 28 37, 32 33 C35 30, 41 27, 45 25 Z" 
-          fill="url(#logoGoldGrad)" 
-          opacity="0.95"
-        />
+        <div className="w-full flex justify-center py-2 transition-transform duration-300 hover:scale-[1.02]">
+          <SvgLogoPaths />
+        </div>
 
-        {/* Dynamic Glowing cyan/teal water ripples for Pool/spa element */}
-        <path 
-          d="M24 45 C34 37, 44 53, 54 45 C64 37, 74 53, 84 45" 
-          stroke="#00E5FF" 
-          strokeWidth="2.5" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          opacity="0.85" 
-        />
-        {/* Main Golden Ripple curve */}
-        <path 
-          d="M19 54 C30 46, 41 62, 52 54 C63 46, 74 62, 85 54" 
-          stroke="url(#logoGoldGrad)" 
-          strokeWidth="3.5" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-        />
-        {/* Soft bottom water ripple (light white/dark navy depending on context) */}
-        <path 
-          d="M27 63 C35 57, 43 69, 51 63 C59 57, 67 69, 75 63" 
-          stroke={light ? "#ffffff" : "#0d1e3d"} 
-          strokeWidth="1.8" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          opacity="0.95"
-        />
-
-        {/* Floating droplets of relaxation / spa wellness */}
-        <circle cx="50" cy="30" r="3" fill="#ffffff" opacity="0.9" />
-        <circle cx="57" cy="26" r="1.8" fill="#00E5FF" opacity="0.8" />
-        <circle cx="43" cy="27" r="1.2" fill="url(#logoGoldGrad)" opacity="0.85" />
-
-        <defs>
-          <linearGradient id="logoGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f7e1a3" />
-            <stop offset="55%" stopColor="#c8922a" />
-            <stop offset="100%" stopColor="#8d5f12" />
-          </linearGradient>
-        </defs>
-      </svg>
+        {/* Modern minimal year & location pill below logo */}
+        <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1 bg-white border border-sky-200/80 rounded-full shadow-xs text-xs font-mono font-bold text-sky-700 tracking-wider">
+          <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+          <span>ÉDITION 2026 • CASABLANCA</span>
+        </div>
+      </div>
     );
-  };
-
-  const LogoImage = () => {
-    if (imageError) {
-      return <DefaultSymbol />;
-    }
-
-    return (
-      <img
-        src={logoUrl}
-        alt="Africa Pool &amp; Spa Expo"
-        className="h-12 w-auto object-contain max-w-[280px]"
-        referrerPolicy="no-referrer"
-        onError={() => setImageError(true)}
-      />
-    );
-  };
-
-  // With text elements removed, all variants show the clean logo graphic image directly
-  if (variant === 'symbol') {
-    return <LogoImage />;
   }
 
+  // Symbol variant (for favicon, icons or small spaces)
+  if (variant === 'symbol') {
+    return (
+      <div className={`flex items-center justify-center w-10 h-10 ${className}`}>
+        <SvgLogoPaths />
+      </div>
+    );
+  }
+
+  // Horizontal variant (default: for Navbar, Footer, etc.)
   return (
-    <div className={`flex items-center select-none ${className}`} id="logo-branding-horizontal">
-      <LogoImage />
+    <div className={`flex items-center h-10 md:h-12 w-auto max-w-[240px] md:max-w-[280px] select-none ${className}`} id="logo-branding-horizontal">
+      <SvgLogoPaths />
     </div>
   );
 };

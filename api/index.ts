@@ -60,7 +60,7 @@ app.get('/api/admin/verification-config', (req, res) => {
 
 app.post('/api/admin/send-verification', async (req, res) => {
   try {
-    const { method, phone, email } = req.body || {};
+    const { email } = req.body || {};
     const clientIp = (
       req.headers['x-forwarded-for'] ||
       req.socket.remoteAddress ||
@@ -125,9 +125,13 @@ app.get('/api/slides', (req, res) => {
   try {
     if (fs.existsSync(SLIDES_FILE)) {
       const data = fs.readFileSync(SLIDES_FILE, 'utf-8');
-      res.json(JSON.parse(data));
+      const parsed = JSON.parse(data);
+      res.json({
+        slides: Array.isArray(parsed.slides) ? parsed.slides : [],
+        opacity: typeof parsed.opacity === 'number' ? parsed.opacity : 70
+      });
     } else {
-      res.json({ slides: [] });
+      res.json({ slides: [], opacity: 70 });
     }
   } catch (err) {
     res.status(500).json({ error: 'Erreur lors du chargement des diapositives.' });
@@ -136,13 +140,14 @@ app.get('/api/slides', (req, res) => {
 
 app.post('/api/slides', (req, res) => {
   try {
-    const { slides } = req.body;
+    const { slides, opacity } = req.body;
     if (!Array.isArray(slides)) {
       res.status(400).json({ error: 'Format invalide. Une liste d’URLs de diapositives est attendue.' });
       return;
     }
-    fs.writeFileSync(SLIDES_FILE, JSON.stringify({ slides }, null, 2), 'utf-8');
-    res.json({ success: true, slides });
+    const cleanOpacity = typeof opacity === 'number' ? Math.max(10, Math.min(100, Math.round(opacity))) : 70;
+    fs.writeFileSync(SLIDES_FILE, JSON.stringify({ slides, opacity: cleanOpacity }, null, 2), 'utf-8');
+    res.json({ success: true, slides, opacity: cleanOpacity });
   } catch (err) {
     res.status(500).json({ error: 'Erreur lors de l’enregistrement des diapositives.' });
   }
