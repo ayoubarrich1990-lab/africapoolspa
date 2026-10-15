@@ -62,17 +62,20 @@ import { motion, AnimatePresence } from 'motion/react';
 import StandBookingModal from './components/StandBookingModal';
 import VisitorTicketModal from './components/VisitorTicketModal';
 import Logo from './components/Logo';
+import MediaPartners from './components/MediaPartners';
+import ExhibitorsSinta from './components/ExhibitorsSinta';
 import { AIChatAssistant } from './components/AIChatAssistant';
 import bgLuxuryPool from './assets/images/hero_expo_bg_1783518540159.jpg';
 import bgDomedHall from './assets/images/hero_domed_hall_bg_1783520762693.jpg';
 import bgCrowdHall from './assets/images/pool_expo_bg_1780934724088.png';
-import logoSaya from './assets/images/regenerated_image_1781003477006.png';
+import logoSaya from './assets/images/regenerated_image_1781000603577.png';
 import logoFrio from './assets/images/regenerated_image_1781000604311.jpg';
-import logoPoolSpa from './assets/images/regenerated_image_1781003247380.png';
+import logoPoolSpa from './assets/images/regenerated_image_1781000604579.webp';
 import logoPaledo from './assets/images/regenerated_image_1781001514526.png';
 import logoCcei from './assets/images/regenerated_image_1781001515196.webp';
-import logoNwg from './assets/images/regenerated_image_1781001515827.png';
-import logoAtlanta from './assets/images/regenerated_image_1781003246792.webp';
+import logoHwg from './assets/images/regenerated_image_1781001515827.png';
+import logoAtlanta from './assets/images/regenerated_image_1781001516207.png';
+import logoFirstWater from './assets/images/regenerated_image_1781002304588.png';
 import logoVerso from './assets/images/regenerated_image_1781001516746.png';
 import type { 
   Exhibitor, 
@@ -94,31 +97,38 @@ export default function App() {
   // Helper to obtain local optimized logos or use specific image assets
   const getExhibitorLogoUrl = (ex: Exhibitor): string | undefined => {
     const nameLower = ex.name?.toLowerCase() || '';
-    if (ex.id === 'ex-1' || nameLower.includes('saya')) {
+    const id = ex.id || '';
+    if (id === 'ex-1' || nameLower.includes('saya')) {
       return logoSaya;
     }
-    if (ex.id === 'ex-2' || nameLower.includes('frio')) {
+    if (id === 'ex-2' || nameLower.includes('frio')) {
       return logoFrio;
     }
-    if (ex.id === 'ex-3' || nameLower.includes('poolspa') || nameLower.includes('spa')) {
+    if (id === 'ex-3' || nameLower.includes('poolspa') || nameLower.includes('pool spa')) {
       return logoPoolSpa;
     }
-    if (ex.id === 'ex-4' || nameLower.includes('paledo')) {
+    if (id === 'ex-4' || nameLower.includes('paledo')) {
       return logoPaledo;
     }
-    if (ex.id === 'ex-5' || nameLower.includes('ccei')) {
+    if (id === 'ex-5' || nameLower.includes('ccei')) {
       return logoCcei;
     }
-    if (ex.id === 'ex-6' || nameLower.includes('nwg')) {
-      return logoNwg;
+    if (id === 'ex-6' || nameLower.includes('hwg') || nameLower.includes('nwg') || nameLower.includes('hitech')) {
+      return logoHwg;
     }
-    if (ex.id === 'ex-7' || nameLower.includes('atlanta')) {
+    if (id === 'ex-7' || nameLower.includes('atlanta')) {
       return logoAtlanta;
     }
-    if (nameLower.includes('verso') || nameLower.includes('versô')) {
+    if (id === 'ex-8' || nameLower.includes('first water') || nameLower.includes('firstwater')) {
+      return logoFirstWater;
+    }
+    if (id === 'ex-10' || nameLower.includes('verso') || nameLower.includes('versô')) {
       return logoVerso;
     }
-    return ex.logoUrl;
+    if (ex.logoUrl && ex.logoUrl.trim().length > 0) {
+      return ex.logoUrl;
+    }
+    return undefined;
   };
 
   // Modals & Dashboard view triggers
@@ -988,6 +998,11 @@ export default function App() {
             </a>
           </li>
           <li>
+            <a href="#partenaires-medias" className="text-slate-700 hover:text-sky-600 text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-sky-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
+              Partenaires Médias
+            </a>
+          </li>
+          <li>
             <a href="#contact-section" className="text-slate-700 hover:text-sky-600 text-xs font-bold uppercase tracking-wider transition-colors relative after:absolute after:bottom-[-6px] after:left-0 after:right-0 after:h-0.5 after:bg-sky-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform">
               Contact
             </a>
@@ -1092,6 +1107,13 @@ export default function App() {
                 className="block text-slate-800 hover:text-sky-600 text-sm font-bold uppercase tracking-wider border-b border-slate-100 pb-2"
               >
                 Exposants
+              </a>
+              <a 
+                href="#partenaires-medias" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block text-slate-800 hover:text-sky-600 text-sm font-bold uppercase tracking-wider border-b border-slate-100 pb-2"
+              >
+                Partenaires Médias
               </a>
               <a 
                 href="#contact-section" 
@@ -2446,17 +2468,20 @@ export default function App() {
           </div>
         </div>
       </section>
-      <section className="py-24 bg-light/30" id="exposants">
+      <section className="py-24 bg-gradient-to-b from-slate-50/50 via-white to-sky-50/30" id="exposants">
         <div className="container mx-auto px-6 lg:px-12">
           
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
             <div className="space-y-3 text-left">
-              <span className="text-xs uppercase font-extrabold tracking-widest text-gold font-mono">DYNAMIQUE COMMERCIALE</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-100/70 text-sky-700 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-sky-600 animate-pulse" />
+                DYNAMIQUE COMMERCIALE &bull; EXPOSANTS OFFICIELS 2026
+              </div>
               <h2 className="font-serif text-navy text-3xl sm:text-4xl font-black">
-                Ils Seront <span className="text-gold">Exposants</span>
+                Ils Seront <span className="text-sky-600">Exposants</span>
               </h2>
-              <p className="text-gray-500 max-w-lg text-xs sm:text-sm">
-                Une liste d'exposants en temps réel synchronisée directement avec le serveur principal d'Africa Pool &amp; Spa.
+              <p className="text-gray-500 max-w-xl text-xs sm:text-sm">
+                Découvrez les fabricants et marques phares du secteur de la piscine, du bien-être, de la domotique et du traitement de l'eau réunis à Casablanca.
               </p>
             </div>
             
@@ -2464,63 +2489,26 @@ export default function App() {
               <button
                 id="organizer-console-panel-open"
                 onClick={() => openAdminConsoleOrLogin('exhibitors')}
-                className="px-4 py-2 border-2 border-gold/40 hover:border-gold/90 text-navy font-bold text-xs uppercase tracking-wider rounded transition-colors flex items-center justify-center gap-2"
+                className="px-4 py-2.5 border-2 border-sky-600/30 hover:border-sky-600 text-slate-800 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 hover:bg-sky-50 shadow-sm"
               >
-                {isAdminAuthenticated ? '⚙️ Ajouter Ma Société' : '🔒 Connexion Organisateur'} (Espace Organisateur)
+                {isAdminAuthenticated ? '⚙️ Gérer les Exposants' : '🔒 Espace Organisateur'}
               </button>
             </div>
           </div>
 
           {loadingExhibitors ? (
-            <div className="flex flex-col items-center justify-center py-12 space-y-3">
-              <Loader2 className="h-8 w-8 text-gold animate-spin" />
-              <p className="text-xs text-gray-500">Chargement de la liste des exposants...</p>
-            </div>
-          ) : exhibitors.length === 0 ? (
-            <div className="bg-white p-12 text-center rounded border border-gray-100 max-w-md mx-auto">
-              <p className="text-sm text-gray-500 font-medium">Aucun exposant trouvé dans la base.</p>
-              <p className="text-xs text-gray-400 mt-1">Utilisez l'onglet "Exposants" dans la console d'administration pour en insérer.</p>
+            <div className="flex flex-col items-center justify-center py-16 space-y-3">
+              <Loader2 className="h-8 w-8 text-sky-600 animate-spin" />
+              <p className="text-xs text-gray-500 font-medium">Chargement de la liste officielle des exposants...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {exhibitors.map((ex) => (
-                <motion.div 
-                  key={ex.id}
-                  whileHover={{ y: -3 }}
-                  className="bg-white p-5 rounded-lg border border-gray-200/80 shadow-sm text-center flex flex-col justify-between min-h-[140px]"
-                >
-                  <div className="w-full h-16 mb-3 rounded-lg overflow-hidden bg-slate-50 flex items-center justify-center border border-gray-100 p-1">
-                    {getExhibitorLogoUrl(ex) ? (
-                      <img 
-                        src={getExhibitorLogoUrl(ex)} 
-                        alt={`${ex.name} Logo`} 
-                        className="max-w-full max-h-full object-contain rounded-md"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm text-white shadow-sm" style={{ backgroundColor: ex.logoColor || '#cbd5e1' }}>
-                        {ex.highlightWord ? ex.highlightWord.charAt(0).toUpperCase() : ex.name.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <h5 className="font-bold text-navy text-sm font-sans tracking-tight block">
-                      {ex.name}
-                    </h5>
-                    {ex.highlightWord && (
-                      <span className="text-[10px] text-gold font-bold uppercase tracking-wider mt-1 block">
-                        {ex.highlightWord}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="text-[9px] text-gray-400 font-mono mt-2">
-                    EX-ID: {ex.id.slice(3, 8)}...
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            <ExhibitorsSinta
+              exhibitors={exhibitors}
+              getExhibitorLogoUrl={getExhibitorLogoUrl}
+              onOpenBookingModal={() => setIsStandModalOpen(true)}
+              onOpenAdminConsole={() => openAdminConsoleOrLogin('exhibitors')}
+              isAdminAuthenticated={isAdminAuthenticated}
+            />
           )}
         </div>
       </section>
@@ -2748,6 +2736,9 @@ export default function App() {
         </div>
       </section>
 
+      {/* ===== MEDIA PARTNERS SECTION ===== */}
+      <MediaPartners />
+
       {/* ===== BOTTOM FOOTER AREA ===== */}
       <footer className="bg-slate-50 text-slate-600 pt-16 pb-8 border-t border-sky-100" id="main-footer">
         <div className="container mx-auto px-6 lg:px-12">
@@ -2814,11 +2805,21 @@ export default function App() {
               </ul>
             </div>
 
-            <div className="space-y-3">
-              <h5 className="text-[10px] uppercase tracking-wider text-slate-900 font-bold">Partenaires exposants</h5>
-              <p className="text-xs text-slate-500">
-                Saya Line, Frio Équipement, PoolSPA, PALEDO, CCEI, NWG, Atlanta Pompe, First Water, SWIN.LED.
-              </p>
+            <div className="space-y-4">
+              <div>
+                <h5 className="text-[10px] uppercase tracking-wider text-slate-900 font-bold mb-1">Partenaires exposants</h5>
+                <p className="text-xs text-slate-500">
+                  Saya Line, Frio Équipement, PoolSPA, PALEDO, CCEI, NWG, Atlanta Pompe, First Water, SWIN.LED.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-slate-200">
+                <a href="#partenaires-medias" className="text-[10px] uppercase tracking-wider text-sky-700 font-bold hover:underline flex items-center gap-1">
+                  📰 Partenaires Médias
+                </a>
+                <p className="text-xs text-slate-500 mt-1">
+                  A+E, Chantiers du Maroc, Telecontact.ma, Kompass.
+                </p>
+              </div>
             </div>
           </div>
 

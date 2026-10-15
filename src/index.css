@@ -64,3 +64,24 @@ body {
     width: 100%;
   }
 }
+
+/* Sinta (Infinite Scrolling Logo Ribbon) Animation */
+@keyframes sinta-marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-33.333333%);
+  }
+}
+
+.animate-sinta-marquee {
+  display: flex;
+  width: max-content;
+  animation: sinta-marquee 32s linear infinite;
+  will-change: transform;
+}
+
+.animate-sinta-marquee:hover {
+  animation-play-state: paused;
+}

@@ -3,72 +3,72 @@
     {
       "id": "ex-1",
       "name": "Saya Line",
-      "highlightWord": "Saya",
-      "logoColor": "#38bdf8",
-      "logoUrl": "/src/assets/images/regenerated_image_1781003477006.png"
+      "highlightWord": "Spas & Balnéo",
+      "logoColor": "#0284c7",
+      "logoUrl": "/src/assets/images/regenerated_image_1781000603577.png"
     },
     {
       "id": "ex-2",
       "name": "Frio Équipement",
-      "highlightWord": "Frio",
-      "logoColor": "#60a5fa",
-      "logoUrl": "https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=200&auto=format&fit=crop"
+      "highlightWord": "Froid & Équipement",
+      "logoColor": "#1d4ed8",
+      "logoUrl": "/src/assets/images/regenerated_image_1781000604311.jpg"
     },
     {
       "id": "ex-3",
       "name": "PoolSPA",
-      "highlightWord": "SPA",
+      "highlightWord": "Piscines & Spas",
       "logoColor": "#0ea5e9",
-      "logoUrl": "/src/assets/images/regenerated_image_1781003247380.png"
+      "logoUrl": "/src/assets/images/regenerated_image_1781000604579.webp"
     },
     {
       "id": "ex-4",
       "name": "PALEDO",
-      "highlightWord": "PALEDO",
+      "highlightWord": "Traitement d Eau",
       "logoColor": "#0284c7",
-      "logoUrl": "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?q=80&w=200&auto=format&fit=crop"
+      "logoUrl": "/src/assets/images/regenerated_image_1781001514526.png"
     },
     {
       "id": "ex-5",
       "name": "CCEI",
-      "highlightWord": "CCEI",
-      "logoColor": "#10b981",
-      "logoUrl": "https://images.unsplash.com/photo-1558449028-b53a39d100fc?q=80&w=200&auto=format&fit=crop"
+      "highlightWord": "Tech & Domotique",
+      "logoColor": "#1e3a8a",
+      "logoUrl": "/src/assets/images/regenerated_image_1781001515196.webp"
     },
     {
       "id": "ex-6",
-      "name": "NWG",
-      "highlightWord": "NWG",
-      "logoColor": "#14b8a6",
-      "logoUrl": "https://images.unsplash.com/photo-1527061011665-3652c757a4d4?q=80&w=200&auto=format&fit=crop"
+      "name": "HWG (Hitech Water Group)",
+      "highlightWord": "Filtration & Pompes",
+      "logoColor": "#0284c7",
+      "logoUrl": "/src/assets/images/regenerated_image_1781001515827.png"
     },
     {
       "id": "ex-7",
-      "name": "First Water",
-      "highlightWord": "First",
-      "logoColor": "#0ea5e9",
-      "logoUrl": "/src/assets/images/regenerated_image_1781003246792.webp"
+      "name": "ATLANTA POMPE",
+      "highlightWord": "Hydraulique & Pompes",
+      "logoColor": "#16a34a",
+      "logoUrl": "/src/assets/images/regenerated_image_1781001516207.png"
     },
     {
       "id": "ex-8",
       "name": "First Water",
-      "highlightWord": "First",
-      "logoColor": "#2563eb",
-      "logoUrl": "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=200&auto=format&fit=crop"
-    },
-    {
-      "id": "ex-9",
-      "name": "SWIN.LED",
-      "highlightWord": "SWIN.LED",
-      "logoColor": "#a855f7",
-      "logoUrl": "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?q=80&w=200&auto=format&fit=crop"
+      "highlightWord": "Génie Aquatique",
+      "logoColor": "#1e40af",
+      "logoUrl": "/src/assets/images/regenerated_image_1781002304588.png"
     },
     {
       "id": "ex-10",
       "name": "VERSÔ Signature",
-      "highlightWord": "VERSÔ",
-      "logoColor": "#0ea5e9",
+      "highlightWord": "Bassins de Luxe",
+      "logoColor": "#0369a1",
       "logoUrl": "/src/assets/images/regenerated_image_1781001516746.png"
+    },
+    {
+      "id": "ex-1791390941629",
+      "name": "Aiper",
+      "highlightWord": "Robots Sans Fil",
+      "logoColor": "#0d9488",
+      "logoUrl": "https://d1ynqtbpih48ow.cloudfront.net/assets/images/2026/01/FR-white-logo-com-PC.webp"
     }
   ],
   "reservations": [

@@ -22,16 +22,16 @@ interface DatabaseSchema {
 const getInitialDb = (): DatabaseSchema => {
   return {
     exhibitors: [
-      { id: 'ex-1', name: 'ATLANTA POMPE', highlightWord: 'Saya', logoColor: '#38bdf8', logoUrl: '/src/assets/images/regenerated_image_1781003477006.png' },
-      { id: 'ex-2', name: 'Frio Équipement', highlightWord: 'Frio', logoColor: '#60a5fa', logoUrl: '/src/assets/images/regenerated_image_1781000604311.jpg' },
-      { id: 'ex-3', name: 'SAYA LINE', highlightWord: 'SPA', logoColor: '#0ea5e9', logoUrl: '/src/assets/images/regenerated_image_1781003247380.png' },
-      { id: 'ex-4', name: 'PALEDO', highlightWord: 'PALEDO', logoColor: '#0284c7', logoUrl: '/src/assets/images/regenerated_image_1781001514526.png' },
-      { id: 'ex-5', name: 'CCEI', highlightWord: 'CCEI', logoColor: '#10b981', logoUrl: '/src/assets/images/regenerated_image_1781001515196.webp' },
-      { id: 'ex-6', name: 'NWG', highlightWord: 'NWG', logoColor: '#14b8a6', logoUrl: '/src/assets/images/regenerated_image_1781001515827.png' },
-      { id: 'ex-7', name: 'POOLSPA', highlightWord: 'First', logoColor: '#0ea5e9', logoUrl: '/src/assets/images/regenerated_image_1781003246792.webp' },
-      { id: 'ex-8', name: 'First Water', highlightWord: 'First', logoColor: '#2563eb', logoUrl: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=200&auto=format&fit=crop' },
-      { id: 'ex-9', name: 'SWIN.LED', highlightWord: 'SWIN.LED', logoColor: '#a855f7', logoUrl: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?q=80&w=200&auto=format&fit=crop' },
-      { id: 'ex-10', name: 'VERSÔ Signature', highlightWord: 'VERSÔ', logoColor: '#0ea5e9', logoUrl: '/src/assets/images/regenerated_image_1781001516746.png' },
+      { id: 'ex-1', name: 'Saya Line', highlightWord: 'Spas & Balnéo', logoColor: '#0284c7', logoUrl: '/src/assets/images/regenerated_image_1781000603577.png' },
+      { id: 'ex-2', name: 'Frio Équipement', highlightWord: 'Froid & Équipement', logoColor: '#1d4ed8', logoUrl: '/src/assets/images/regenerated_image_1781000604311.jpg' },
+      { id: 'ex-3', name: 'PoolSPA', highlightWord: 'Piscines & Spas', logoColor: '#0ea5e9', logoUrl: '/src/assets/images/regenerated_image_1781000604579.webp' },
+      { id: 'ex-4', name: 'PALEDO', highlightWord: 'Traitement d Eau', logoColor: '#0284c7', logoUrl: '/src/assets/images/regenerated_image_1781001514526.png' },
+      { id: 'ex-5', name: 'CCEI', highlightWord: 'Tech & Domotique', logoColor: '#1e3a8a', logoUrl: '/src/assets/images/regenerated_image_1781001515196.webp' },
+      { id: 'ex-6', name: 'HWG (Hitech Water Group)', highlightWord: 'Filtration & Pompes', logoColor: '#0284c7', logoUrl: '/src/assets/images/regenerated_image_1781001515827.png' },
+      { id: 'ex-7', name: 'ATLANTA POMPE', highlightWord: 'Hydraulique & Pompes', logoColor: '#16a34a', logoUrl: '/src/assets/images/regenerated_image_1781001516207.png' },
+      { id: 'ex-8', name: 'First Water', highlightWord: 'Génie Aquatique', logoColor: '#1e40af', logoUrl: '/src/assets/images/regenerated_image_1781002304588.png' },
+      { id: 'ex-10', name: 'VERSÔ Signature', highlightWord: 'Bassins de Luxe', logoColor: '#0369a1', logoUrl: '/src/assets/images/regenerated_image_1781001516746.png' },
+      { id: 'ex-1791390941629', name: 'Aiper', highlightWord: 'Robots Sans Fil', logoColor: '#0d9488', logoUrl: 'https://d1ynqtbpih48ow.cloudfront.net/assets/images/2026/01/FR-white-logo-com-PC.webp' },
     ],
     reservations: [
       {
@@ -301,80 +301,29 @@ export async function setupDatabase(): Promise<boolean> {
     // 5. ENSURE EX-8 AND EX-10 COMPATIBILITY AND AUTO-UPDATE
     if (usePrisma && prisma) {
       try {
-        // Ensure ex-1 has the newly regenerated logo Url in backend
-        const ex1 = await prisma.exhibitor.findUnique({ where: { id: 'ex-1' } });
-        if (ex1 && ex1.logoUrl !== '/src/assets/images/regenerated_image_1781003477006.png') {
-          await prisma.exhibitor.update({
-            where: { id: 'ex-1' },
-            data: {
-              logoUrl: '/src/assets/images/regenerated_image_1781003477006.png'
-            }
-          });
-          console.log("🔄 Updated ex-1 (Saya Line) logoUrl in Postgres database.");
-        }
-        // Ensure ex-3 has the newly regenerated logo Url in backend
-        const ex3 = await prisma.exhibitor.findUnique({ where: { id: 'ex-3' } });
-        if (ex3 && ex3.logoUrl !== '/src/assets/images/regenerated_image_1781003247380.png') {
-          await prisma.exhibitor.update({
-            where: { id: 'ex-3' },
-            data: {
-              logoUrl: '/src/assets/images/regenerated_image_1781003247380.png'
-            }
-          });
-          console.log("🔄 Updated ex-3 (PoolSPA) logoUrl in Postgres database.");
-        }
-
-        // Ensure ex-7 has the newly regenerated logo Url and name in backend
-        const ex7 = await prisma.exhibitor.findUnique({ where: { id: 'ex-7' } });
-        if (ex7 && (ex7.logoUrl !== '/src/assets/images/regenerated_image_1781003246792.webp' || ex7.name !== 'First Water' || ex7.highlightWord !== 'First')) {
-          await prisma.exhibitor.update({
-            where: { id: 'ex-7' },
-            data: {
-              name: 'First Water',
-              highlightWord: 'First',
-              logoUrl: '/src/assets/images/regenerated_image_1781003246792.webp'
-            }
-          });
-          console.log("🔄 Updated ex-7 (First Water) logo and name in Postgres database.");
-        }
-
-        // Restore ex-8 to First Water
-        const ex8 = await prisma.exhibitor.findUnique({ where: { id: 'ex-8' } });
-        if (ex8 && ex8.name !== 'First Water') {
-          await prisma.exhibitor.update({
-            where: { id: 'ex-8' },
-            data: {
-              name: 'First Water',
-              highlightWord: 'First',
-              logoUrl: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=200&auto=format&fit=crop',
-            },
-          });
-          console.log("🔄 Restored ex-8 to 'First Water' inside PostgreSQL database.");
-        }
-
-        // Add or ensure ex-10 for VERSÔ Signature
-        const ex10 = await prisma.exhibitor.findUnique({ where: { id: 'ex-10' } });
-        if (!ex10) {
-          await prisma.exhibitor.create({
-            data: {
-              id: 'ex-10',
-              name: 'VERSÔ Signature',
-              highlightWord: 'VERSÔ',
-              logoColor: '#0ea5e9',
-              logoUrl: '/src/assets/images/regenerated_image_1781001516746.png',
-            },
-          });
-          console.log("✨ Added ex-10 'VERSÔ Signature' to PostgreSQL database.");
-        } else if (ex10.name !== 'VERSÔ Signature') {
-          await prisma.exhibitor.update({
-            where: { id: 'ex-10' },
-            data: {
-              name: 'VERSÔ Signature',
-              highlightWord: 'VERSÔ',
-              logoColor: '#0ea5e9',
-              logoUrl: '/src/assets/images/regenerated_image_1781001516746.png',
-            },
-          });
+        // Ensure all official exhibitors have their genuine logos and data
+        const initial = getInitialDb();
+        for (const ex of initial.exhibitors) {
+          const existing = await prisma.exhibitor.findUnique({ where: { id: ex.id } });
+          if (!existing) {
+            await prisma.exhibitor.create({ data: ex });
+            console.log(`✨ Added official exhibitor ${ex.name} (${ex.id}) to PostgreSQL.`);
+          } else if (
+            existing.name !== ex.name || 
+            existing.logoUrl !== ex.logoUrl ||
+            existing.highlightWord !== ex.highlightWord
+          ) {
+            await prisma.exhibitor.update({
+              where: { id: ex.id },
+              data: {
+                name: ex.name,
+                highlightWord: ex.highlightWord,
+                logoColor: ex.logoColor,
+                logoUrl: ex.logoUrl,
+              },
+            });
+            console.log(`🔄 Synchronized official exhibitor ${ex.name} (${ex.id}) in PostgreSQL.`);
+          }
         }
       } catch (dbErr) {
         console.warn("Could not auto-verify/update exhibitors in Postgres:", dbErr);

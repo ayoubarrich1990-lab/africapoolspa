@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" width="1200" height="240">
+  <defs>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&amp;display=swap");
+      .title { font-family: "Montserrat", sans-serif; font-weight: 800; fill: #52525b; letter-spacing: 0.1em; font-size: 32px; }
+      .ae-main { font-family: "Montserrat", sans-serif; font-weight: 900; fill: #18181b; font-size: 52px; letter-spacing: -0.03em; }
+      .ae-sub { font-family: "Montserrat", sans-serif; font-weight: 700; fill: #27272a; font-size: 11px; letter-spacing: 0.14em; }
+      .ch-main { font-family: "Montserrat", sans-serif; font-weight: 900; fill: #d9242a; font-size: 32px; letter-spacing: -0.02em; }
+      .ch-sub { font-family: "Montserrat", sans-serif; font-weight: 700; fill: #18181b; font-size: 22px; }
+      .ch-tag { font-family: "Montserrat", sans-serif; font-weight: 700; fill: #27272a; font-size: 11px; line-height: 1.25; }
+      .tc-main { font-family: "Montserrat", sans-serif; font-weight: 700; fill: #09090b; font-size: 38px; letter-spacing: -0.02em; }
+      .tc-dot { font-family: "Montserrat", sans-serif; font-weight: 900; fill: #09090b; font-size: 19px; }
+      .kp-main { font-family: "Montserrat", sans-serif; font-weight: 900; fill: #e11d48; font-size: 38px; letter-spacing: 0.08em; }
+      .kp-sub { font-family: "Montserrat", sans-serif; font-weight: 600; fill: #e11d48; font-size: 13px; letter-spacing: 0.02em; }
+    </style>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff" />
+  
+  <!-- Section Title -->
+  <text x="600" y="55" text-anchor="middle" class="title">PARTENAIRES MÉDIAS</text>
+
+  <!-- 1. A+E -->
+  <g transform="translate(60, 115)">
+    <text x="75" y="42" text-anchor="middle" class="ae-main">A+E°</text>
+    <text x="75" y="65" text-anchor="middle" class="ae-sub">ARCHITECTURE ET ENVIRONNEMENT AU MAROC</text>
+  </g>
+
+  <!-- 2. CHANTIERS DU MAROC -->
+  <g transform="translate(340, 120)">
+    <text x="0" y="26" class="ch-main">CHANTIERS</text>
+    <text x="0" y="54" class="ch-sub">du Maroc <tspan font-weight="900" font-size="20">.ma</tspan></text>
+    <line x1="205" y1="5" x2="205" y2="60" stroke="#d9242a" stroke-width="2.2" />
+    <text x="215" y="18" class="ch-tag">1<tspan font-size="9" dy="-4">er</tspan><tspan dy="4"> Magazine</tspan></text>
+    <text x="215" y="32" class="ch-tag">de l'actualité</text>
+    <text x="215" y="46" class="ch-tag">du secteur</text>
+    <text x="215" y="60" class="ch-tag">de la construction</text>
+  </g>
+
+  <!-- 3. TELECONTACT -->
+  <g transform="translate(730, 140)">
+    <text x="0" y="32" class="tc-main">Telecontact.</text>
+    <circle cx="230" cy="20" r="23" fill="#ffd000" />
+    <text x="230" y="27" text-anchor="middle" class="tc-dot">ma</text>
+  </g>
+
+  <!-- 4. KOMPASS -->
+  <g transform="translate(1010, 140)">
+    <text x="90" y="26" text-anchor="middle" class="kp-main">KOMPASS</text>
+    <text x="90" y="48" text-anchor="middle" class="kp-sub">Your route to business worldwide</text>
+  </g>
+</svg>
