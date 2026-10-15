@@ -128,10 +128,10 @@ app.get('/api/slides', (req, res) => {
       const parsed = JSON.parse(data);
       res.json({
         slides: Array.isArray(parsed.slides) ? parsed.slides : [],
-        opacity: typeof parsed.opacity === 'number' ? parsed.opacity : 70
+        opacity: typeof parsed.opacity === 'number' ? parsed.opacity : 85
       });
     } else {
-      res.json({ slides: [], opacity: 70 });
+      res.json({ slides: [], opacity: 85 });
     }
   } catch (err) {
     res.status(500).json({ error: 'Erreur lors du chargement des diapositives.' });

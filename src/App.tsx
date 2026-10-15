@@ -299,7 +299,7 @@ export default function App() {
   // Background images for the hero slideshow (dynamic state with fallback)
   const defaultSlides = [bgLuxuryPool, bgDomedHall, bgCrowdHall];
   const [backgroundImages, setBackgroundImages] = useState<string[]>(defaultSlides);
-  const [slideOpacity, setSlideOpacity] = useState<number>(70);
+  const [slideOpacity, setSlideOpacity] = useState<number>(85);
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
   const [adminSlidesInput, setAdminSlidesInput] = useState('');
   const [isSavingSlides, setIsSavingSlides] = useState(false);
@@ -1175,7 +1175,7 @@ export default function App() {
         {/* Sliding Background Images with smooth transitions and luminous airy overlay */}
         <div 
           className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none transition-opacity duration-700"
-          style={{ opacity: Math.max(0.1, Math.min(1, (slideOpacity || 70) / 100)) }}
+          style={{ opacity: Math.max(0.15, Math.min(1, (slideOpacity || 85) / 100)) }}
         >
           <AnimatePresence mode="popLayout">
             <motion.div
@@ -1187,17 +1187,17 @@ export default function App() {
               className="absolute inset-0 bg-cover bg-center"
               style={{
                 backgroundImage: `url(${backgroundImages[currentBgIndex]})`,
-                filter: 'saturate(1.15) contrast(1.05) brightness(1.02)',
+                filter: 'saturate(1.2) contrast(1.08) brightness(1.0)',
               }}
             />
           </AnimatePresence>
         </div>
         
-        {/* Ambient Luminous Water & White Gradient Overlay */}
+        {/* Ambient Luminous Water & Balanced Gradient Overlay - lets slide images shine through with depth */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none select-none" 
           style={{ 
-            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(240, 249, 255, 0.35) 35%, rgba(240, 249, 255, 0.40) 65%, rgba(255, 255, 255, 0.90) 100%)',
+            background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.22) 0%, rgba(2, 132, 199, 0.08) 35%, rgba(240, 249, 255, 0.45) 70%, rgba(255, 255, 255, 0.85) 100%)',
           }} 
         />
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExternalLink, Newspaper, Award, Globe, Building2, BookOpen } from 'lucide-react';
 import bannerSvg from '../assets/images/partenaires_medias_banner.svg';
+import atlasOriginalLogo from '../assets/images/logo_atlas_original.svg';
 
 export interface MediaPartnerItem {
   id: string;
@@ -27,6 +28,14 @@ export const MEDIA_PARTNERS: MediaPartnerItem[] = [
     description: '1er magazine d’information et d’actualité économique dédié aux acteurs des grands chantiers, des infrastructures et du BTP.',
     url: 'https://chantiersdumaroc.ma',
     badge: '1er Magazine BTP',
+  },
+  {
+    id: 'atlas-original',
+    name: 'Atlas Original',
+    category: 'Économie & Territoires',
+    description: 'L’ouvrage et média de référence économique au Maroc, dédié aux investissements, infrastructures et dynamiques territoriales.',
+    url: 'https://atlasoriginal.net',
+    badge: 'Référence Économique',
   },
   {
     id: 'telecontact',
@@ -68,41 +77,41 @@ export const MediaPartners: React.FC = () => {
           </p>
         </div>
 
-        {/* 4 Official Partner Logos Grid - High-fidelity styling matching the uploaded screenshot */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+        {/* 5 Official Partner Logos Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 items-stretch">
           
           {/* 1. A+E Architecture et Environnement au Maroc */}
           <a
             href="https://aandemagazine.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200/80 hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/5 transition-all duration-300 relative text-left"
+            className="group flex flex-col justify-between p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/5 transition-all duration-300 relative text-left"
           >
-            <div className="absolute top-3.5 right-3.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ExternalLink className="h-4 w-4 text-sky-600" />
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ExternalLink className="h-3.5 w-3.5 text-sky-600" />
             </div>
 
-            <div className="h-28 flex flex-col items-center justify-center border-b border-slate-100 pb-4 mb-4 select-none">
+            <div className="h-28 flex flex-col items-center justify-center border-b border-slate-100 pb-3 mb-3 select-none">
               <div className="flex items-start leading-none font-sans font-black tracking-tight text-3xl sm:text-4xl text-slate-900 group-hover:text-sky-600 transition-colors">
                 <span>A</span>
                 <span className="mx-0.5 text-2xl font-bold self-center text-slate-900">+</span>
                 <span>E</span>
                 <span className="text-sm font-bold -mt-1 ml-0.5">°</span>
               </div>
-              <span className="text-[7.5px] sm:text-[8px] font-black uppercase tracking-[0.12em] text-slate-800 mt-1.5 text-center leading-tight">
+              <span className="text-[7px] sm:text-[7.5px] font-black uppercase tracking-[0.11em] text-slate-800 mt-1.5 text-center leading-tight">
                 ARCHITECTURE ET ENVIRONNEMENT AU MAROC
               </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider bg-sky-50 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider bg-sky-50 px-1.5 py-0.5 rounded">
                   Architecture &amp; Design
                 </span>
                 <span className="text-[9px] text-slate-400 font-medium">Magazine</span>
               </div>
               <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                Revue d'architecture marocaine de référence consacrée aux projets d'exception et à l'aménagement.
+                Revue d'architecture marocaine de référence pour les projets d'exception.
               </p>
             </div>
           </a>
@@ -112,107 +121,143 @@ export const MediaPartners: React.FC = () => {
             href="https://chantiersdumaroc.ma"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200/80 hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/5 transition-all duration-300 relative text-left"
+            className="group flex flex-col justify-between p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/5 transition-all duration-300 relative text-left"
           >
-            <div className="absolute top-3.5 right-3.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ExternalLink className="h-4 w-4 text-sky-600" />
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ExternalLink className="h-3.5 w-3.5 text-sky-600" />
             </div>
 
-            <div className="h-28 flex items-center justify-center gap-2 border-b border-slate-100 pb-4 mb-4 select-none">
+            <div className="h-28 flex items-center justify-center gap-1.5 border-b border-slate-100 pb-3 mb-3 select-none">
               <div className="flex flex-col items-start leading-tight">
-                <span className="text-xl sm:text-2xl font-black uppercase tracking-tight text-[#d9242a] font-sans">
+                <span className="text-lg sm:text-xl font-black uppercase tracking-tight text-[#d9242a] font-sans">
                   CHANTIERS
                 </span>
-                <span className="text-sm sm:text-base font-bold text-slate-900 -mt-0.5">
-                  du Maroc<span className="text-xs font-black text-slate-700">.ma</span>
+                <span className="text-xs sm:text-sm font-bold text-slate-900 -mt-0.5">
+                  du Maroc<span className="text-[10px] font-black text-slate-700">.ma</span>
                 </span>
               </div>
-              <div className="h-10 w-[2px] bg-[#d9242a] mx-1 opacity-90" />
-              <div className="text-[7.5px] sm:text-[8px] leading-[1.18] font-bold text-slate-800 uppercase tracking-tight text-left">
-                <div>1<sup className="text-[6px]">er</sup> Magazine</div>
+              <div className="h-8 w-[2px] bg-[#d9242a] mx-0.5 opacity-90" />
+              <div className="text-[7px] leading-[1.15] font-bold text-slate-800 uppercase tracking-tight text-left">
+                <div>1<sup className="text-[5px]">er</sup> Mag BTP</div>
                 <div>de l'actualité</div>
-                <div>du secteur</div>
-                <div>de la construction</div>
+                <div>construction</div>
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider bg-red-50 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider bg-red-50 px-1.5 py-0.5 rounded">
                   BTP &amp; Construction
                 </span>
                 <span className="text-[9px] text-slate-400 font-medium">Presse B2B</span>
               </div>
               <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                Le magazine leader d'actualité du bâtiment, des travaux publics et des infrastructures au Maroc.
+                Le magazine leader de l'actualité bâtiment, travaux publics et infrastructures.
               </p>
             </div>
           </a>
 
-          {/* 3. Telecontact.ma */}
+          {/* 3. ATLAS ORIGINAL */}
+          <a
+            href="https://atlasoriginal.net"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex flex-col justify-between p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/5 transition-all duration-300 relative text-left"
+          >
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ExternalLink className="h-3.5 w-3.5 text-sky-600" />
+            </div>
+
+            <div className="h-28 flex flex-col items-center justify-center border-b border-slate-100 pb-3 mb-3 select-none">
+              <div className="w-24 h-12 flex items-center justify-center text-slate-900 group-hover:text-sky-600 transition-colors">
+                <img 
+                  src={atlasOriginalLogo} 
+                  alt="Atlas Original" 
+                  className="max-h-10 w-auto object-contain filter contrast-125"
+                />
+              </div>
+              <span className="text-[7px] font-black uppercase tracking-[0.14em] text-slate-800 mt-1.5 text-center leading-tight">
+                L'OUVRAGE DE RÉFÉRENCE ÉCONOMIQUE
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-sky-700 uppercase tracking-wider bg-sky-50 px-1.5 py-0.5 rounded">
+                  Économie &amp; Projets
+                </span>
+                <span className="text-[9px] text-slate-400 font-medium">Revue B2B</span>
+              </div>
+              <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                L'ouvrage de référence économique et stratégique pour les investisseurs et décideurs au Maroc.
+              </p>
+            </div>
+          </a>
+
+          {/* 4. Telecontact.ma */}
           <a
             href="https://www.telecontact.ma"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200/80 hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/5 transition-all duration-300 relative text-left"
+            className="group flex flex-col justify-between p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/5 transition-all duration-300 relative text-left"
           >
-            <div className="absolute top-3.5 right-3.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ExternalLink className="h-4 w-4 text-sky-600" />
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ExternalLink className="h-3.5 w-3.5 text-sky-600" />
             </div>
 
-            <div className="h-28 flex items-center justify-center select-none font-sans border-b border-slate-100 pb-4 mb-4">
+            <div className="h-28 flex items-center justify-center select-none font-sans border-b border-slate-100 pb-3 mb-3">
               <div className="flex items-center">
-                <span className="text-2xl sm:text-[27px] font-bold tracking-tight text-slate-950">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950">
                   Telecontact.
                 </span>
-                <div className="w-8 h-8 rounded-full bg-[#fed000] flex items-center justify-center shadow-xs ml-1 flex-shrink-0">
-                  <span className="text-xs font-black text-slate-950">ma</span>
+                <div className="w-7 h-7 rounded-full bg-[#fed000] flex items-center justify-center shadow-xs ml-1 flex-shrink-0">
+                  <span className="text-[11px] font-black text-slate-950">ma</span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider bg-amber-50 px-2 py-0.5 rounded">
-                  Annuaire B2B N°1
+                <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider bg-amber-50 px-1.5 py-0.5 rounded">
+                  Annuaire N°1
                 </span>
                 <span className="text-[9px] text-slate-400 font-medium">Digital</span>
               </div>
               <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                L'annuaire professionnel de référence pour trouver acheteurs, fournisseurs et prestataires au Maroc.
+                L'annuaire professionnel de référence pour trouver acheteurs et prestataires au Maroc.
               </p>
             </div>
           </a>
 
-          {/* 4. KOMPASS Your route to business worldwide */}
+          {/* 5. KOMPASS Your route to business worldwide */}
           <a
             href="https://ma.kompass.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex flex-col justify-between p-6 sm:p-7 rounded-2xl bg-white border border-slate-200/80 hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/5 transition-all duration-300 relative text-left"
+            className="group flex flex-col justify-between p-5 rounded-2xl bg-white border border-slate-200/80 hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/5 transition-all duration-300 relative text-left"
           >
-            <div className="absolute top-3.5 right-3.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ExternalLink className="h-4 w-4 text-sky-600" />
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ExternalLink className="h-3.5 w-3.5 text-sky-600" />
             </div>
 
-            <div className="h-28 flex flex-col items-center justify-center select-none border-b border-slate-100 pb-4 mb-4">
-              <span className="text-2xl sm:text-[28px] font-black tracking-wider text-[#e11d48] uppercase font-sans">
+            <div className="h-28 flex flex-col items-center justify-center select-none border-b border-slate-100 pb-3 mb-3">
+              <span className="text-xl sm:text-2xl font-black tracking-wider text-[#e11d48] uppercase font-sans">
                 KOMPASS
               </span>
-              <span className="text-[8.5px] sm:text-[9.5px] font-medium text-[#e11d48] tracking-wide mt-1 whitespace-nowrap">
+              <span className="text-[7.5px] font-medium text-[#e11d48] tracking-wide mt-1 whitespace-nowrap">
                 Your route to business worldwide
               </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider bg-rose-50 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider bg-rose-50 px-1.5 py-0.5 rounded">
                   Réseau Mondial
                 </span>
                 <span className="text-[9px] text-slate-400 font-medium">B2B Global</span>
               </div>
               <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                Base de données mondiale et mise en relation internationale entre entreprises exportatrices et acheteurs.
+                Base de données mondiale et mise en relation internationale entre professionnels.
               </p>
             </div>
           </a>
